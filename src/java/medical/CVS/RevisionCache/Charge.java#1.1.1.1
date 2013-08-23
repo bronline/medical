@@ -1,0 +1,169 @@
+/*
+ * Charge.java
+ *
+ * Created on November 28, 2005, 11:46 AM
+ *
+ * To change this template, choose Tools | Options and locate the template under
+ * the Source Creation and Management node. Right-click the template and choose
+ * Open. You can then make changes to the template in the Source Editor.
+ */
+
+package medical;
+import java.math.BigDecimal;
+import tools.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
+/**
+ *
+ * @author BR Online Solutions
+ */
+public class Charge extends RWResultSet {
+    private String id;
+    private int resourceId = 0;
+    private int visitId = 0;
+    private int itemId = 0;
+    private BigDecimal chargeAmount;
+    private BigDecimal copayAmount;
+    private String comment;
+    private SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private Visit visit;
+    private Patient patient;
+    private PatientPlan patientPlan;
+    private Payment payment;
+
+    /** Creates a new instance of Charge */
+    public Charge() {
+    }
+
+    public Charge(RWConnMgr io, String ID) throws Exception {
+        setConnMgr(io);
+        id = ID;
+        setResultSet(io.opnRS("select * from charges where id=" + id));
+    }
+
+    public void setId(int newId) throws Exception {
+        id = ""+newId;
+        setResultSet(io.opnRS("select * from charges where id=" + id));
+    }
+    
+    public void setId(String newId) throws Exception {
+        setId(Integer.parseInt(newId));
+    }
+ 
+    public void setResourceId(int newResourceId) throws Exception {
+        resourceId = newResourceId;
+    }
+
+    public void setVisitId(int newVisitId) throws Exception {
+        visitId = newVisitId;
+    }
+
+    public void setItemId(int newItemId) throws Exception {
+        itemId = newItemId;
+    }
+
+    public void setChargeAmount(BigDecimal newChargeAmount) throws Exception {
+        chargeAmount = newChargeAmount;
+    }
+    
+    public void setCopayAmount(BigDecimal newAmount) throws Exception {
+        copayAmount=newAmount;
+    }
+
+    public void update() throws Exception {
+        
+        checkForCopayAmount();
+        
+        setResultSet(io.opnUpdatableRS("select * from charges where id=" + id));
+        rs.beforeFirst();
+        if (rs.next()) {
+            rs.updateInt("visitid", visitId);
+            rs.updateInt("itemid", itemId);
+            rs.updateInt("resourceId", resourceId);
+            rs.updateBigDecimal("chargeamount", chargeAmount);
+            rs.updateBigDecimal("copayamount", copayAmount);
+            rs.updateRow();
+        } else {
+            rs.moveToInsertRow();
+            rs.updateInt("visitid", visitId);
+            rs.updateInt("itemid", itemId);
+            rs.updateInt("resourceId", resourceId);
+            rs.updateBigDecimal("chargeamount", chargeAmount);
+            rs.updateBigDecimal("copayamount", copayAmount);
+            rs.insertRow();
+            setNewChargeId();
+        }
+        
+        checkForPatientPlan();
+    }
+
+    private void checkForCopayAmount() throws Exception {
+        setCopayAmount(new BigDecimal("0.00"));
+        ResultSet lRs=io.opnRS("select * from visits where id=" + visitId);
+        if(lRs.next()) {
+            ResultSet iRs=io.opnRS("select * from patientinsurance where patientid=" + lRs.getString("patientid"));
+            if(iRs.next()) {
+                ResultSet dRs=io.opnRS("select * from defaultpayments where itemid=" + itemId + " and (patientid=" + lRs.getString("patientid") + " or providerid=" + iRs.getString("providerid") + ") order by patientid desc" );
+                if(dRs.next()) { setCopayAmount(dRs.getBigDecimal("copay")); }
+                dRs.close();
+            }
+            iRs.close();
+        }
+        lRs.close();
+    }
+    
+    private void checkForPatientPlan() throws Exception {
+        if(visit == null) { visit=new Visit(io, 0); }
+        if(patient == null) { patient=new Patient(io, 0); }
+        
+        visit.setId(visitId);
+        patient.setId(visit.getPatientId());
+        
+        if(patient.getPatientPlan().getPlanId() != 0) {
+            if(patientPlan == null) { patientPlan=patient.getPatientPlan(); }
+//            patientPlan.setPlanId(patient.getInt("planid"));
+            checkChargesToDate();
+        }
+    }
+    
+    private void checkChargesToDate() throws Exception {
+// 10/24/07 changed logic for including patient and insurance portions to get maximumPlanCharges
+        double maximumPlanCharges=patientPlan.getDouble("patientportion");
+        if(patient.getBoolean("insuranceactive")) { maximumPlanCharges+=patientPlan.getDouble("insuranceportion"); }
+
+//        double maximumPlanCharges=(patientPlan.getDouble("patientportion") + patientPlan.getDouble("insuranceportion"));
+        double currentPlanCharges=patientPlan.getPlanChargesToDate();
+
+        if (currentPlanCharges > maximumPlanCharges) {
+            if (chargeAmount.doubleValue()<(currentPlanCharges-maximumPlanCharges)) {
+                createWriteOffForCharge(chargeAmount.doubleValue());
+            } else {
+                createWriteOffForCharge(currentPlanCharges-maximumPlanCharges);
+            }
+        }
+    }
+    
+    private void createWriteOffForCharge(double chargeDifference) throws Exception {
+        if(payment == null) { payment=new Payment(io, 0); }
+        if(chargeDifference>0) {
+            payment.setId(0);
+            payment.setAmount(BigDecimal.valueOf(chargeDifference));
+            payment.setChargeId(Integer.parseInt(id));
+            payment.setCheckNumber("0");
+            payment.setDate(new java.util.Date());
+            payment.setOriginalAmount(BigDecimal.valueOf(chargeDifference));
+            payment.setPatientId(patient.getId());
+            payment.setProvider(10);
+            payment.update();
+        }
+    }
+    
+    private void setNewChargeId() throws Exception {
+        ResultSet rs  = io.opnRS("select LAST_INSERT_ID()");
+        rs.next();
+        id=rs.getString(1);
+        rs.close();
+    }
+}

@@ -1,0 +1,4 @@
+<%@ include file="globalvariables.jsp" %>
+<%
+    
+%>

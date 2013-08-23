@@ -1,0 +1,332 @@
+
+.style1 {   color: #000000;
+            font-size: 9px;
+            font-family: tahoma;
+            font-weight: bold;
+            padding-left: 10px; }
+
+.pageHeading { color: #030089;
+               font-size: 16px;
+               font-family: tahoma, helvetica, sans-serif;
+               font-weight: bold; }
+
+.infoHeader  { color: #2c57a7;
+              font-size: 11px;
+              font-family: tahoma, helvetica, sans-serif;
+              font-weight: bold; }
+
+.detailHeader{ color: black;
+              font-size: 12px;
+              font-family: tahoma, helvetica, sans-serif;
+              font-weight: bold; }
+
+.banner     { color: #030089;
+              font-size: 21px;
+              font-family: tahoma;
+              font-weight: bold;
+              padding-left: 10px; }
+
+div#section    { color: #ffffff;
+              font-size: 14px;
+              font-family: tahoma;
+              font-weight: bold;
+              background: #030089; 
+              text-decoration: none; }
+
+div#section1    { color: #ffffff;
+              font-size: 14px;
+              font-family: tahoma;
+              font-weight: bold;
+              background: #030089; 
+              text-decoration: none; }
+
+div#section2    { color: #ffffff;
+              font-size: 14px;
+              font-family: tahoma;
+              font-weight: bold;
+              background: #030089; 
+              text-decoration: none; }
+
+.menubackground { background: #2c57a7; }
+
+.menuLink   { color: #ffffff;
+              font-size: 9px;
+              font-family: tahoma;
+              text-decoration: none; 
+              background: #2c57a7}
+
+a.menuLink:hover { color: #ffffff;
+                   font-size: 9px;
+                   font-family: tahoma;
+                   font-weight: bold;
+                   text-decoration: underline; }
+
+a       { color: #030089; text-decoration: none; }
+a:hover { color: #2c57a7; text-decoration: underline; }
+
+p.page { page-break-before: always; }
+
+h1      { color: #030089;
+          font-weight: bold;
+          font-size: 16px;
+          font-family: tahoma; }
+
+body, td, p { color: #000000;
+              font-size: 9px;
+              font-family: tahoma; }
+
+th	    { font-size: 9px;
+              font-family: tahoma;
+	      background-color: #030089;
+	      color: white;  }
+			
+.cBoxText	{ font-size: 9px; 
+                  font-family: tahoma; }
+.tBoxText       { font-size: 9px; 
+                  font-family: tahoma; }
+.tAreaText      { font-size: 9px; 
+                  font-family: tahoma; }
+.copyright      { font-size: 9px; 
+                  font-family: tahoma; 
+                  color: white }
+
+div#pagetop     { background: #fff}
+div#pagebottom     { background: #fff}
+
+TD.hover    { COLOR: #030089; font-weight: bold; cursor: pointer; }
+TD.normal   { COLOR: #000000; font-weight: normal; CURSOR: default; }
+TD.selected { COLOR: #030089; font-weight: bold; }
+
+.linkMenu   { color: #ffffff; font-size: 9px; font-family: tahoma; font-weight: bold; }
+.button     {
+	background: #030089;
+	color: #fff;
+	font-size: 10;
+	font-weight: bold;
+        font-family: Arial,Helvetica,sans-serif;
+}
+
+.listButton {
+    font-weight: bold;
+    tex-align: center;
+    text-align: center;
+    background-color: #030089;
+    color: #ffffff;
+    border-style: outset;
+    cursor: pointer;
+    border-style: ridge;
+}
+
+b.rtop, b.rbottom{display:block;background: #2c57a7}
+b.rtop b, b.rbottom b{display:block;height: 1px;
+    overflow: hidden; background: #fff}
+b.r1{margin: 0 5px}
+b.r2{margin: 0 3px}
+b.r3{margin: 0 2px}
+b.rtop b.r4, b.rbottom b.r4{margin: 0 1px;height: 2px}
+
+.summaryRow { background: #030089; color: #ffffff; font-weight: bold; font-family: tahoma; font-zise: 9px; }
+
+.menuTab { background-color: #cccccc; background-image: url("/medicaldocs/tab_background_w.gif"); }
+
+input:disabled { color: black; }
+textarea:disabled { color: black; }
+select:disabled { color: black; }
+
+input.checkbox { width: 2.0em; height: 2.0em; padding: 0px; margin: 0px; }
+
+/* ie specific */
+v\:roundrect  {
+        behavior: url(#default#VML);
+        background-color: transparent;
+        border-color: transparent;
+        border-right-style: none;
+        border-left-style: none;
+        border-bottom-style: none;
+        border-top-style: none;
+}
+
+v\:roundrect {
+        color:#000;
+        display:block;
+      /*  background-color: #3399bb; */
+        background-color: #a6c3f8;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+        padding: 3px;
+        z-index: 99;
+/*        height: 100%;                 */
+        }
+
+/* ie specific */
+v\:subitemlist  {
+        behavior: url(#default#VML);
+        /*background-color: transparent; */
+        /*border-color: transparent; */
+}
+
+v\:subitemlist {
+        color:#000;
+        display:block;
+      /*  background-color: #3399bb; */
+        background-color: #a6c3f8;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+        padding: 3px;
+        z-index: 99;
+/*        height: 100%;                 */
+        }
+
+v\:shadow {
+    behavior: url(#default#VML);
+    /*background-color: transparent;   */
+    /*border-color: transparent;       */
+}
+
+v\:shadow {
+    color: #000;
+    display: block;
+/*    background: #666666;  */
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    z-index: 98;
+    background-image: url(opaque_processing.png);
+}
+
+v\:instantMessagesBubble {
+    behavior: url(#default#VML);
+    /*background-color: transparent;    */
+    /*border-color: transparent;        */
+}
+
+v\:instantMessagesBubble {
+    color: #000;
+    display: block;
+    background: #a6c3f8;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    z-index: 98;
+}
+/* ie specific */
+v\:appointmentEdit  {
+        behavior: url(#default#VML);
+        /*background-color: transparent; */
+        /*border-color: transparent; */
+}
+
+v\:appointmentEdit {
+        color:#000;
+        display:block;
+      /*  background-color: #3399bb; */
+        background-color: #e0e0e0;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+        padding: 3px;
+        z-index: 98;
+/*        height: 100%;                 */
+        }
+
+.accordianHeader {
+        width: 100%;
+        font-size: 125%;
+        font-style: normal;
+        float: left;
+        padding-top: 10px;
+        padding-bottom: 5px;
+}
+
+.accordionButton {
+	width: 95%;
+	float: left;
+        font-weight: bold;
+        font-style: normal;
+	background: #e0e0e0;
+	border-bottom: 1px solid #FFFFFF;
+	cursor: pointer;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 2px;
+}
+
+.accordionContent {
+	width: 100%;
+	float: left;
+	background: #e0e0e0;
+        font-size: 95%;
+	display: none;
+}
+
+#checkoutDiv {
+        background-color: #a6c3f8;
+        border-radius: 10px;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-bottom: 10px;
+        padding-right: 5px;
+}
+
+#patientHintBubble {
+        position: absolute;
+        top: 115px;
+        left: 100px;
+        width: 720;
+        height: 435;
+        padding: 10px;
+        background-color: #a6c3f8;
+        
+        border-radius: 10px;
+        box-shadow: 10px 10px 5px #333;
+
+        -moz-border-radius: 10px;
+        -moz-box-shadow: 10px 10px 5px #333;
+
+        -webkit-border-radius: 10px;
+        -webkit-box-shadow: 10px 10px 5px #333;
+
+}
+
+#secondaryInsuranceBubble {
+        position: absolute;
+        top: 115px;
+        left: 300px;
+        padding: 15px;
+        width: 400px;
+
+        background-color: #a6c3f8;
+        visibility: hidden;
+
+        border-radius: 10px;
+        box-shadow: 10px 10px 5px #333;
+
+        -moz-border-radius: 10px;
+        -moz-box-shadow: 10px 10px 5px #333;
+
+        -webkit-border-radius: 10px;
+        -webkit-box-shadow: 10px 10px 5px #333;
+}
+
+#batchPrintBubble {
+        position: absolute;
+        top: 115px;
+        left: 300px;
+        padding: 15px;
+        width: 400px;
+
+        background-color: #a6c3f8;
+        visibility: hidden;
+        text-align: left;
+
+        border-radius: 10px;
+        box-shadow: 10px 10px 5px #333;
+
+        -moz-border-radius: 10px;
+        -moz-box-shadow: 10px 10px 5px #333;
+
+        -webkit-border-radius: 10px;
+        -webkit-box-shadow: 10px 10px 5px #333;
+}

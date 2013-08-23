@@ -1,0 +1,67 @@
+ SECONDARY PAYER NAME                                     PRIMARY PAYER NAME
+ SEC PAYER ADDR	                                          PAYER ADDRESS
+ SEC PAYER CITY, ST ZIP
+ SEC BILL ###########        SEC REND ########            CITY, ST ZIP
+ SEC PAYER ID NBR 00523					  PAYER ID NUMBER 00012
+ 
+
+                                                          XXX111111111
+
+DOE, JANE                           01011955          X   DOE, JANE 
+
+111 TEST LANE                         X                   111 TEST LANE 
+
+ST LOUIS                    MO                X           ST LOUIS                MO
+
+11111             314 111 1111                            11111          314 111 1111
+
+DOE, JOHN                                                 12223333
+
+123456789A                                     X            01011955             X 
+                                                            
+02011945      X                                X          EMPLOYER
+                                                 
+OTHER INSURED EMPLOYER                         X          PIMARY PAYER NAME
+                                                 
+MDG #  SECONDARY PAYER NAME
+                                                                    X
+
+
+
+        SIGNATURE ON FILE                 04/26/06            SIGNATURE ON FILE
+
+
+04 13 06                                                                        
+                                                            	                          
+JOHN SMITH		A12345		REFERRING NPI 	    	XXXXXX	XXXXXX	
+                                                                                         
+
+
+  XXX.XX                     XXX.XX                                           
+
+                  												
+  XXX.XX		     XXX.XX			    12D3456789	
+  
+
+04 26 06      04 26 05 11 1   99203             12          130.00 1       1111111
+
+04 26 06      04 26 05 11 3   76499             123          60.00 1       1111111
+
+04 26 06      04 26 05 11 1   97012             12           34.00 1       1111111
+
+04 26 06      04 26 05 11 1   98941             134          70.00 1       1111111
+
+04 26 06      04 26 05 11 1   97010             1            15.00 1       1111111
+
+04 28 06      04 28 05 11 1   97012             12           34.00 1       1111111
+
+
+123456789             X    DOEJA000         X               773.00           773.00
+MICKEY MOUSE MD
+                           GATEWAY EDI                     GATEWAY EDI
+                           9201 WATSON RD SUITE 200        9201 WATSON RD SUITE 200
+   DATE  05/10/2006        ST LOUIS, MO  63126             ST LOUIS, MO 63126
+                                                             111111           222222 
+                                                           (800)969-3666
+TAXONOMY		   				   BILLING NPI
+							   RENDERING NPI

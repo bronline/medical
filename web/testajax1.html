@@ -1,0 +1,319 @@
+
+<link rel="stylesheet" type="text/css" href="css/stylesheet.css" title="stylesheet">
+<script language="JavaScript" src="js/date-picker.js"></script>
+<script language="JavaScript" src="js/CheckDate.js"></script>
+<script language="JavaScript" src="js/CheckLength.js"></script>
+<script language="JavaScript" src="js/colorpicker.js"></script>
+<script language="JavaScript" src="js/datechecker.js"></script>
+<script language="JavaScript" src="js/dFilter.js"></script>
+<script language="JavaScript" src="js/currency.js"></script>
+<script language="JavaScript" src="js/checkemailaddress.js"></script>
+<script language="JavaScript" src="js/invertselection.js"></script>
+
+
+
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/stylesheet.css" title="csstylesheet">
+<title>Chiropractic Office Management System</title>
+
+</head>
+<body topmargin="0" leftmargin="0" style="background: #000066">
+<script src="js/clienthint.js"></script> 
+<script>
+    function printReport() {
+      window.open('printreport.jsp','print','height=300,width=640,scrollbars=yes,resizable');
+    }
+    
+    var e
+    function setDivPosition(e, what) {
+        what.style.left=e.clientX+50;
+        what.style.top=e.clientY+10;
+    }
+    
+    function showHide(what,state) {
+        if(state == "HIDE") {
+            what.style.visibility="hidden";
+            what.style.display="none";
+        } else {
+            what.style.visibility="visible";
+            what.style.display="";  
+        }
+    }
+    
+    function showPhoneNumber(e,criteria,txtHint) {
+        setDivPosition(e,txtHint);
+        showHint(criteria);
+        showHide(txtHint,'SHOW');
+    }    
+</script>
+<fieldset id="txtHint" style="background-color: #999999; width: 250; height: 25; position: absolute; top: 0; left: 0; visibility: hidden; display: none;"></fieldset>
+<script language="javascript">
+  function formSubmit() {
+    var frmA=document.forms["formFilter"]
+    frmA.action=""
+    frmA.method="POST"
+    frmA.submit()
+  }
+</script>
+
+<table width="800" border="0" cellSpacing="0" cellPadding="0">
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=185","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Cosner</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=185","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Shirley</td>
+  <td align=left valign=top width=150>Medicare</td>
+  <td align=right valign=top width=100>$3,725.00</td>
+  <td align=right valign=top width=100>$285.00</td>
+  <td align=right valign=top width=100>$3,440.00</td>
+  <td align=right valign=top width=100>$673.84</td>
+  <td align=right valign=top width=100>$2,766.16</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=185","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Cosner</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=185","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Shirley</td>
+  <td align=left valign=top width=150>PEBTF</td>
+  <td align=right valign=top width=100>$3,725.00</td>
+  <td align=right valign=top width=100>$285.00</td>
+  <td align=right valign=top width=100>$3,440.00</td>
+  <td align=right valign=top width=100>$673.84</td>
+  <td align=right valign=top width=100>$2,766.16</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=28","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">West</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=28","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Tom</td>
+  <td align=left valign=top width=150>First Priority Health</td>
+  <td align=right valign=top width=100>$2,660.00</td>
+  <td align=right valign=top width=100>$117.00</td>
+  <td align=right valign=top width=100>$2,543.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$2,543.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=146","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Tralongo</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=146","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Katrin</td>
+  <td align=left valign=top width=150>Medicare</td>
+  <td align=right valign=top width=100>$3,230.00</td>
+  <td align=right valign=top width=100>$740.00</td>
+  <td align=right valign=top width=100>$2,490.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$2,490.00</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=105","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Renna</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=105","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Michelle</td>
+  <td align=left valign=top width=150>Highmark BC/BS PPO</td>
+  <td align=right valign=top width=100>$5,125.00</td>
+  <td align=right valign=top width=100>$3,040.50</td>
+  <td align=right valign=top width=100>$2,084.50</td>
+  <td align=right valign=top width=100>$1.00</td>
+  <td align=right valign=top width=100>$2,083.50</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=109","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Levin</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=109","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brent</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$5,590.00</td>
+  <td align=right valign=top width=100>$3,550.00</td>
+  <td align=right valign=top width=100>$2,040.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$2,040.00</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=109","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Levin</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=109","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brent</td>
+  <td align=left valign=top width=150>Highmark BC/BS PPO</td>
+  <td align=right valign=top width=100>$5,590.00</td>
+  <td align=right valign=top width=100>$3,550.00</td>
+  <td align=right valign=top width=100>$2,040.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$2,040.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=225","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Gager</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=225","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brent</td>
+  <td align=left valign=top width=150>Cigna</td>
+  <td align=right valign=top width=100>$3,600.00</td>
+  <td align=right valign=top width=100>$1,626.25</td>
+  <td align=right valign=top width=100>$1,973.75</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,973.75</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=34","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Burr</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=34","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Tamara</td>
+  <td align=left valign=top width=150>Cash</td>
+  <td align=right valign=top width=100>$1,915.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,915.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,915.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=241","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brown</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=241","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Sheri</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$2,900.00</td>
+  <td align=right valign=top width=100>$837.30</td>
+  <td align=right valign=top width=100>$2,062.70</td>
+  <td align=right valign=top width=100>$225.00</td>
+  <td align=right valign=top width=100>$1,837.70</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=24","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">McKeon</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=24","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Timothy</td>
+  <td align=left valign=top width=150>Cash</td>
+  <td align=right valign=top width=100>$3,695.00</td>
+  <td align=right valign=top width=100>$1,906.26</td>
+  <td align=right valign=top width=100>$1,788.74</td>
+  <td align=right valign=top width=100>$20.00</td>
+  <td align=right valign=top width=100>$1,768.74</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=9","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">McKeon</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=9","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Amy</td>
+  <td align=left valign=top width=150>Cash</td>
+  <td align=right valign=top width=100>$5,720.00</td>
+  <td align=right valign=top width=100>$4,078.76</td>
+  <td align=right valign=top width=100>$1,641.24</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,641.24</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=220","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brady</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=220","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Tara</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$4,995.00</td>
+  <td align=right valign=top width=100>$3,287.57</td>
+  <td align=right valign=top width=100>$1,707.43</td>
+  <td align=right valign=top width=100>$110.00</td>
+  <td align=right valign=top width=100>$1,597.43</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=220","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brady</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=220","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Tara</td>
+  <td align=left valign=top width=150>Allstate</td>
+  <td align=right valign=top width=100>$4,995.00</td>
+  <td align=right valign=top width=100>$3,287.57</td>
+  <td align=right valign=top width=100>$1,707.43</td>
+  <td align=right valign=top width=100>$110.00</td>
+  <td align=right valign=top width=100>$1,597.43</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=32","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Sanderson</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=32","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">George</td>
+  <td align=left valign=top width=150>Highmark BC/BS PPO</td>
+  <td align=right valign=top width=100>$6,280.00</td>
+  <td align=right valign=top width=100>$4,763.66</td>
+  <td align=right valign=top width=100>$1,516.34</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,516.34</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=32","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Sanderson</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=32","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">George</td>
+  <td align=left valign=top width=150>Met Life Auto and Home</td>
+  <td align=right valign=top width=100>$6,280.00</td>
+  <td align=right valign=top width=100>$4,763.66</td>
+  <td align=right valign=top width=100>$1,516.34</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,516.34</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=47","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Fletcher</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=47","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Laurie</td>
+  <td align=left valign=top width=150>First Priority Health</td>
+  <td align=right valign=top width=100>$7,650.00</td>
+  <td align=right valign=top width=100>$6,172.31</td>
+  <td align=right valign=top width=100>$1,477.69</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,477.69</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=262","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Steele</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=262","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Terra</td>
+  <td align=left valign=top width=150>First Priority Health</td>
+  <td align=right valign=top width=100>$3,275.00</td>
+  <td align=right valign=top width=100>$1,812.50</td>
+  <td align=right valign=top width=100>$1,462.50</td>
+  <td align=right valign=top width=100>$13.33</td>
+  <td align=right valign=top width=100>$1,449.17</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=199","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Brown</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=199","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Jim</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$3,270.00</td>
+  <td align=right valign=top width=100>$1,664.00</td>
+  <td align=right valign=top width=100>$1,606.00</td>
+  <td align=right valign=top width=100>$225.00</td>
+  <td align=right valign=top width=100>$1,381.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=242","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Gager</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=242","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Kris</td>
+  <td align=left valign=top width=150>Cigna</td>
+  <td align=right valign=top width=100>$4,190.00</td>
+  <td align=right valign=top width=100>$2,889.25</td>
+  <td align=right valign=top width=100>$1,300.75</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,300.75</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=215","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Lapi</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=215","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Joseph</td>
+  <td align=left valign=top width=150>Cash</td>
+  <td align=right valign=top width=100>$2,650.00</td>
+  <td align=right valign=top width=100>$1,055.00</td>
+  <td align=right valign=top width=100>$1,595.00</td>
+  <td align=right valign=top width=100>$344.00</td>
+  <td align=right valign=top width=100>$1,251.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=4","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Woodcock</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=4","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Stephen</td>
+  <td align=left valign=top width=150>Highmark BC/BS PPO</td>
+  <td align=right valign=top width=100>$6,010.00</td>
+  <td align=right valign=top width=100>$4,508.96</td>
+  <td align=right valign=top width=100>$1,501.04</td>
+  <td align=right valign=top width=100>$283.36</td>
+  <td align=right valign=top width=100>$1,217.68</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=77","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Moyer</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=77","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Karen</td>
+  <td align=left valign=top width=150>Cash</td>
+  <td align=right valign=top width=100>$1,150.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,150.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,150.00</td>
+ </tr>
+ <tr bgcolor=#e0e0e0>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=179","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Teel</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=179","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Dorothy</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$7,210.00</td>
+  <td align=right valign=top width=100>$6,071.00</td>
+  <td align=right valign=top width=100>$1,139.00</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,139.00</td>
+ </tr>
+ <tr bgcolor=#cccccc>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=187","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Steele</td>
+  <td align=left valign=top width=75 onMouseOver=showPhoneNumber(event,this.innerHTML,txtHint)  onClick=window.open("comments_d.jsp?id=0&patientid=187","Collections","width=500,height=200,scrollbars=no,left=100,top=100,"); style="cursor: pointer; color: #2c57a7; font-weight: bold;">Bruce</td>
+  <td align=left valign=top width=150>FPLIC/Blue Care PPO</td>
+  <td align=right valign=top width=100>$7,980.00</td>
+  <td align=right valign=top width=100>$6,885.40</td>
+  <td align=right valign=top width=100>$1,094.60</td>
+  <td align=right valign=top width=100>$0.00</td>
+  <td align=right valign=top width=100>$1,094.60</td>
+ </tr>
+
+</table>
+
+</body>
+
+</html>
+
+<!-- start of included methods -->
+

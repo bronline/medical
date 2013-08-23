@@ -1,0 +1,1495 @@
+/*
+ * Patient.java
+ *
+ * Created on November 19, 2005, 8:29 AM
+ *
+ * To change this template, choose Tools | Options and locate the template under
+ * the Source Creation and Management node. Right-click the template and choose
+ * Open. You can then make changes to the template in the Source Editor.
+ */
+
+package medical;
+import java.math.BigDecimal;
+import tools.*;
+import tools.utils.*;
+import java.sql.*;
+import java.util.Calendar;
+import java.util.ArrayList;
+
+/**
+ *
+ * @author BR Online Solutions
+ */
+public class Patient extends RWResultSet {
+
+    private String id;
+    private boolean updatable   = false;
+    private RWHtmlTable htmTb   = new RWHtmlTable();
+    private RWInputForm frm     = new RWInputForm();
+    private PatientIndicators ind;
+    private Comments comments;
+    private Appointments appointments;
+    private PatientPlan plan;
+    private Document document;
+    private Symptoms symptoms;
+    private PatientProblems problems;
+    private XrayFindings findings;
+    private PatientInsurance patientInsurance;
+    private java.util.Date today    = new java.util.Date();
+    private Timestamp timeStamp     = new java.sql.Timestamp(today.getTime());
+    private ResultSet workRs;
+    private BigDecimal returnAmount;
+
+    private boolean editForm = false;
+    
+    /** Creates a new instance of Patient */
+    public Patient() {
+    }
+    
+    public Patient(RWConnMgr newIo, String ID) throws Exception {
+        setConnMgr(newIo);
+        if(frm == null)   { frm   = new RWInputForm(); }
+        if(htmTb == null) { htmTb = new RWHtmlTable(); }
+        if(ind == null)   { ind   = new PatientIndicators(io, 0); }
+        setId(ID);
+    }
+
+    public Patient(RWConnMgr newIo, int ID) throws Exception {
+        setConnMgr(newIo);
+        if(frm == null)   { frm   = new RWInputForm(); }
+        if(htmTb == null) { htmTb = new RWHtmlTable(); }
+        if(ind == null)   { ind   = new PatientIndicators(io, 0); }
+        setId("" +ID);
+    }
+
+    public Patient(RWConnMgr io, String ID, boolean newBol) throws Exception {
+        setConnMgr(io);
+        setUpdatable(newBol);
+        if(frm == null)   { frm   = new RWInputForm(); }
+        if(htmTb == null) { htmTb = new RWHtmlTable(); }
+        if(ind == null)   { ind   = new PatientIndicators(io, 0); }
+        setId(ID);
+    }
+    
+    public Patient(RWConnMgr io, int ID, boolean newBol) throws Exception {
+        setConnMgr(io);
+        setUpdatable(newBol);
+        setId("" + ID);
+    }
+    
+    public void setId(String newId) throws Exception {
+        id = newId;
+        refresh();
+        beforeFirst();
+        if(!next()) {
+            id = "0";
+            refresh();
+        }
+        beforeFirst();
+    }
+
+    public void setId(int newId) throws Exception {
+        setId("" + newId);
+    }
+    
+    public void setEditPatient(boolean newBol) {
+        editForm = newBol;
+    }
+
+    public void findCardNumber(String newCard) throws Exception {
+        setResultSet(io.opnRS("select * from patients where cardnumber=" + newCard));
+        if(rs.next()) {
+            setId(getInt("id"));
+        } else {
+            setId(0);
+        }
+    }
+
+    public void setUpdatable(boolean newBol) {
+        updatable = newBol;
+    }
+
+    public void setTimestamp() throws Exception {
+        timeStamp = new java.sql.Timestamp(today.getTime());
+    }
+
+    public void refresh() throws Exception {
+        if(updatable) {
+            setResultSet(io.opnUpdatableRS("select * from patients where id=" + id));        
+        } else {
+            setResultSet(io.opnRS("select * from patients where id=" + id));
+        }       
+        frm.setResultSet(rs);
+        beforeFirst();
+    }
+
+    public int getId() {
+        return Integer.parseInt(id);
+    }
+    
+    public PatientPlan getPatientPlan() throws Exception {
+        if(plan == null && !id.equals("0")) { plan=new PatientPlan(io, 0); }
+        beforeFirst();
+        if(next()) {
+            plan.setPlanId(getInt("planId"));
+        }
+        return plan;
+    }
+
+    public String getPatientName() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        return getString("firstName") + " " + getString("lastname");
+    }
+    
+    public String getInputForm() throws Exception {
+        frm.setResultSet(rs);
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        
+        htmTb.setWidth("825");
+        htmTb.setBorder("0");
+        frm.setFormItemsDisabled();
+        if(editForm) { frm.setFormItemsEnabled(); }
+        frm.setUseExternalForm(true);
+        frm.setShowDatePicker(true);
+        frm.setUpdateButtonText("  save  ");
+        frm.setDisplayDeleteButton(false);
+        frm.setDisplayUpdateButton(false);
+        frm.setName("frmInput");
+        frm.setMethod("POST");
+        frm.setAction("updaterecord.jsp?rcd=" + id + "&fileName=patients");
+        frm.setOnSubmit("return checkRequiredFields()");
+        frm.setUseHelpText(true);
+        htmTb.replaceNewLineChar(false);
+        StringBuffer md = new StringBuffer();
+        StringBuffer pp = new StringBuffer();
+
+        md.append(frm.startForm());
+        frm.getInputItem("id");
+
+        if(id.equals("0")) { htmTb.setWidth("550"); }
+        md.append(htmTb.startTable());
+        md.append(htmTb.startRow());
+
+        if(!id.equals("0")) {
+            md.append(htmTb.startRow());
+            frm.setUseExternalForm(false);
+            frm.formItemOnOneRow = false;
+            md.append(htmTb.addCell("<Table><tr><td colspan=4>" + getIndicators() + "</td></tr><tr>" +  frm.getInputItem("active") +  frm.getInputItem("resourceid") + "</tr></table>"));
+            frm.setUseExternalForm(true);
+            md.append(htmTb.addCell(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getAccountInfo()), "colspan=2"));
+            md.append(htmTb.endRow());
+        }
+
+        md.append(htmTb.startCell(htmTb.LEFT, "class=infoHeader width=250"));
+        md.append("Patient Information\n");
+        md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getNameAndAddress()));
+        md.append("Contact Information\n");
+        md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getContactInfo()));
+        md.append(getInsuranceActiveInfo());
+        md.append(htmTb.endCell());
+
+        md.append(htmTb.startCell(htmTb.LEFT, "class=infoHeader width=250"));
+        md.append("Demographic Information\n");
+        md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getDemographics()));
+//        md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getDiagnosis()));
+    // If this is a new patient, do not show the symptoms or treatment plan
+        if(!id.equals("0")) {
+//            md.append("Symptoms\n");
+//            md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getSymptoms()));
+            md.append("Treatment\n");
+            md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getTreatmentPlan()));
+        }
+        md.append(htmTb.endCell());
+
+
+    // If this is a new patient, don't show the dashboard
+        if(!id.equals("0")) {
+            md.append(htmTb.startCell(htmTb.LEFT, "class=infoHeader width=250 rowspan=3"));
+
+            htmTb.setWidth("100%");
+            md.append("<br>\n");
+            StringBuffer cmt = new StringBuffer();
+            cmt.append(htmTb.startTable());
+            cmt.append(htmTb.startRow());
+            cmt.append(htmTb.addCell(showComments(), htmTb.LEFT));
+            cmt.append(htmTb.endRow());
+            cmt.append(htmTb.startRow());
+            cmt.append(htmTb.addCell(showAppointments(), htmTb.LEFT));
+            cmt.append(htmTb.endRow());
+            cmt.append(htmTb.startRow());
+            cmt.append(htmTb.addCell(showCharges(), htmTb.LEFT));
+            cmt.append(htmTb.endRow());
+            cmt.append(htmTb.endTable());
+
+            md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, cmt.toString()));
+            md.append(htmTb.endCell());
+        }
+
+        md.append(htmTb.endRow());
+   
+// Don't show the insurance information and appointments if it's a new patient
+        if(!id.equals("0")) {
+            md.append(htmTb.startRow());
+            md.append(htmTb.startCell(htmTb.LEFT, "colspan=2 height=3px"));
+            md.append(htmTb.endCell());
+            md.append(htmTb.endRow());
+            
+            md.append(htmTb.startRow());
+            md.append(htmTb.startCell(htmTb.LEFT, "colspan=2"));
+//            md.append("Insurance Information\n");
+            md.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getInsuranceInfo()));
+            md.append(htmTb.endCell());
+            md.append(htmTb.endRow());
+       }
+                
+        md.append(htmTb.startRow());
+        md.append(htmTb.startCell(htmTb.LEFT, "height=\"4px\" colspan=4"));
+        md.append(htmTb.endCell());
+        md.append(htmTb.endRow());
+        
+        md.append(htmTb.endTable());
+
+        md.append(htmTb.startTable("210"));
+        md.append(htmTb.startRow());
+
+        if(editForm) {
+            md.append(htmTb.startTable("210"));
+            md.append(htmTb.startRow());
+            md.append(htmTb.addCell(frm.submitButton("  save  ", "class=button"), "width=70 style='align: center;'"));
+            if(!id.equals("0")) { md.append(htmTb.addCell(frm.button(" delete ", "class=button onClick=deletePatient()"), "width=70 style='align: center;'")); }
+            md.append(htmTb.addCell(frm.resetButton("  reset  ", "class=button"), "width=70 style='align: center;'"));
+            md.append(htmTb.addCell(frm.button("  cancel  ", "class=button onClick=cancelEditMode()"), "width=70 style='align: center;'"));
+        } else {
+// Add New Patient button
+            if(!id.equals("0")) {
+                md.append(htmTb.addCell(frm.button("  edit  ", "class=button onClick=setEditMode()"), "width=70 style='align: center;'"));
+                md.append(htmTb.addCell("", "width=70 style='align: center;'"));
+                md.append(htmTb.addCell(frm.button("  temp card  ", "class=button onClick=tempCard()"), "width=70 style='align: center;'"));
+                md.append(htmTb.addCell("", "width=70 style='align: center;'"));
+            } 
+            md.append(htmTb.addCell(frm.button("  new  ", "class=button onClick=submitForm('newpatient.jsp')"), "width=70 style='align: center;'"));
+        }
+
+        md.append(htmTb.endRow());
+        md.append(htmTb.endTable());
+
+        md.append(frm.showHiddenFields());
+
+        md.append(frm.endForm());
+
+        md.append("<script type=\"text/javascript\">\n  document.forms[\"frmInput\"].elements[\"firstname\"].focus();\n</script>");
+
+        pp.append(htmTb.getFrame(htmTb.BOTH, "", "white", 15, md.toString()));
+
+        return pp.toString();
+        
+    }
+    
+    public String getMenuItems() throws Exception {
+        StringBuffer pp = new StringBuffer();
+        ResultSet mi = io.opnRS("select * from menuitems where type='P' order by sequence");
+        
+        htmTb.setWidth("100%");
+        pp.append(htmTb.startTable());
+        while(mi.next()) {
+            pp.append(htmTb.startRow());
+            pp.append(htmTb.roundedTop(1, "", "#ffffff", ""));
+            pp.append(htmTb.addCell("<b>" + mi.getString("menuitem") + "</b>", htmTb.CENTER, "width=100 bgcolor=white onClick=submitForm('" + mi.getString("url") + "') style=\"cursor: hand;\""));
+            pp.append(htmTb.roundedBottom(1, "", "#ffffff", ""));
+            pp.append(htmTb.endRow());
+            pp.append(htmTb.startRow("height=3"));
+            pp.append("<td></td>");
+            pp.append(htmTb.endRow());
+        }
+        
+        pp.append(htmTb.endTable());
+
+        return pp.toString();
+    }
+    
+    public String getAccountInfo() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        StringBuffer ai = new StringBuffer();
+        htmTb.replaceNewLineChar(false);
+        frm.formItemOnOneRow = false;
+        frm.setLabelBold(true);
+        htmTb.setWidth("100%");
+
+        ai.append(htmTb.startTable());
+        ai.append(htmTb.startRow());
+        frm.setFormItemsDisabled();
+        if(editForm) { frm.setFormItemsEnabled(); }
+        ai.append(frm.getInputItem("accountnumber"));
+        ai.append(frm.getInputItem("billingaccount"));
+        ai.append(htmTb.endRow());
+        ai.append(htmTb.endTable());
+
+        return ai.toString();
+    }
+
+    public String getNameAndAddress() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        StringBuffer na = new StringBuffer();
+        htmTb.replaceNewLineChar(false);
+        frm.setDftTextBoxSize("12");
+        frm.setDftTextAreaCols("41");
+        frm.formItemOnOneRow = false;
+        frm.setLabelBold(true);
+        frm.setLabelPosition(frm.LABEL_ON_BOTTOM);
+        htmTb.setWidth("100%");
+
+        // added 10-14-07 attentionmsg is text and cannot be null for add
+        if(id.equals("0")) { na.append("<input type=hidden name=attentionmsg value=''>"); }
+        
+        na.append(htmTb.startTable());
+        na.append(htmTb.addCell(frm.getInputItem("firstname")));
+        na.append(htmTb.addCell(" " +frm.getInputItem("middlename")));
+        na.append(htmTb.addCell(frm.getInputItem("lastname")));
+        na.append(htmTb.endRow());
+
+        na.append(htmTb.startRow());
+        na.append(htmTb.addCell(frm.getInputItem("address"), "colspan=3"));
+        na.append(htmTb.endRow());
+
+        na.append(htmTb.startRow());
+        na.append(htmTb.addCell(frm.getInputItem("city")));
+        na.append(htmTb.addCell(" " + frm.getInputItem("state")));
+        na.append(htmTb.addCell(frm.getInputItem("zipcode")));
+        na.append(htmTb.endRow());
+
+        na.append(htmTb.endTable());
+        htmTb.setWidth("245");
+
+        return na.toString();
+    }
+
+    public String getInsuranceInfo() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        StringBuffer ii = new StringBuffer();
+        if(patientInsurance == null) { patientInsurance = new PatientInsurance(io); }
+//        htmTb.replaceNewLineChar(false);
+//        frm.setDftTextBoxSize("25");
+//        frm.formItemOnOneRow = true;
+//        frm.setLabelBold(true);
+//        frm.setLabelPosition(frm.LABEL_ON_LEFT);
+        htmTb.setWidth("99%");
+
+        ii.append(htmTb.startTable());
+        ii.append(htmTb.startRow());
+        ii.append(htmTb.startCell(htmTb.LEFT));
+        ii.append(patientInsurance.getPatientInsuranceList(Integer.parseInt(id)));
+        ii.append(htmTb.endCell());
+        ii.append(htmTb.endRow());
+//        ii.append(frm.getInputItem("providerid"));
+//        ii.append(frm.getInputItem("providernumber"));
+//        ii.append(frm.getInputItem("providergroup"));
+
+        ii.append(htmTb.endTable());
+//        htmTb.setWidth("245");
+
+//        return ii.toString();
+        return ii.toString();       
+        
+    }
+
+    public String getSymptoms() throws Exception {
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+        
+        if(symptoms == null) { symptoms = new Symptoms(io); }
+        return symptoms.getPatientSymptoms(Integer.parseInt(id));       
+    }
+
+    public String getPatientCondition() throws Exception {
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+        StringBuffer pc = new StringBuffer();
+        
+        frm.setName("accidentForm");
+        frm.setAction("updaterecord.jsp?fileName=patients&rcd=" + id);
+        frm.setMethod("POST");
+
+        pc.append(frm.startForm());
+        pc.append(htmTb.startTable("100%"));
+        pc.append(htmTb.roundedTop(2,"","#030089","conditiondivision"));
+
+    // Display the heading
+        pc.append(htmTb.startRow());
+        pc.append(htmTb.headingCell("Illness/Accident Information", "colspan=2"));
+        pc.append(htmTb.endRow());
+        pc.append(htmTb.startRow());
+        pc.append(frm.getInputItem("conditionid"));
+        pc.append(htmTb.endRow());
+        pc.append(htmTb.startRow());        
+        pc.append(frm.getInputItem("accidentdate"));
+        pc.append(htmTb.endRow());
+        pc.append(htmTb.startRow());
+        pc.append(htmTb.addCell("<b>State</b>"));
+        pc.append(htmTb.addCell(frm.textBox(getString("accidentstate"), "accidentstate", "5", "5", "class=tBoxText") + "&nbsp;&nbsp;" + frm.submitButton("save", " class=button"),"colspan=2"));
+        pc.append(htmTb.endRow());
+        pc.append(htmTb.endTable());
+        pc.append(frm.endForm());
+
+        return pc.toString();       
+    }
+    
+    private String getInsuranceActiveInfo() throws Exception {
+        StringBuffer ia=new StringBuffer();
+        
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+
+        ia.append(htmTb.startTable("100%", "0"));
+        ia.append(htmTb.startRow());
+        ia.append(frm.getInputItem("insuranceactive"));
+        ia.append(htmTb.endRow());
+        ia.append(htmTb.endTable());
+        
+        return ia.toString();
+    }
+
+    public String getPatientProblems() throws Exception {
+        return getPatientProblems("");
+    }
+
+    public String getPatientProblems(String fontSize) throws Exception {
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+        
+        if(problems == null) { problems = new PatientProblems(io); }
+        return problems.getPatientProblems(Integer.parseInt(id), fontSize);       
+    }
+
+    public String getXrayFindings() throws Exception {
+        return getXrayFindings("");
+    }
+
+    public String getXrayFindings(String fontSize) throws Exception {
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+        
+        if(findings == null) { findings = new XrayFindings(io); }
+        return findings.getXrayFindings(Integer.parseInt(id), fontSize);       
+    }
+
+    public String getTreatmentPlan() throws Exception {
+        beforeFirst();
+        if (!next() || id.equals("0")) {return "";}
+
+        if(plan == null) { plan = new PatientPlan(io, 0); }
+        plan.setPlanId(getInt("planid"));
+        
+//        htmTb.setWidth("100%");
+        
+        return htmTb.getFrame(htmTb.BOTH, "", "#030089", 3, plan.getMiniPlanDetails(Integer.parseInt(id))); 
+    }
+    
+    public String getDiagnosis() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        htmTb.setBorder("0");
+        String ID = id;
+        StringBuffer di = new StringBuffer();
+
+        htmTb.replaceNewLineChar(false);
+        frm.setDftTextBoxSize("25");
+        frm.setDftTextAreaCols("35");
+        frm.setDftTextAreaRows("14");
+
+        frm.formItemOnOneRow = true;
+        frm.setLabelBold(true);
+        frm.setLabelPosition(frm.LABEL_ON_LEFT);
+        htmTb.setWidth("100%");
+        di.append(htmTb.startTable());
+
+        di.append(frm.getInputItem("diagnosis"));
+
+//        if(!ID.equals("0")) {
+
+//            di.append(htmTb.startRow());
+//            di.append(htmTb.addCell(htmTb.getFrame(htmTb.BOTH, "", "#030089", 3, rp.toString()), "colspan=2"));
+//            di.append(htmTb.endRow());
+//        }
+
+        di.append(htmTb.endTable());
+               
+        htmTb.setWidth("245");
+        frm.setDftTextAreaRows("3");
+
+        return di.toString();
+    }   
+
+    public String getContactInfo() throws Exception {
+        beforeFirst();
+        if (!next() && !id.equals("0")) {return "";}
+        StringBuffer ci = new StringBuffer();
+        htmTb.replaceNewLineChar(false);
+        frm.setDftTextBoxSize("25");
+        frm.formItemOnOneRow = true;
+        frm.setLabelBold(true);
+        frm.setLabelPosition(frm.LABEL_ON_LEFT);
+        htmTb.setWidth("100%");
+
+        ci.append(htmTb.startTable());
+        ci.append(frm.getInputItem("homephone"));
+        ci.append(frm.getInputItem("workphone"));
+        ci.append(frm.getInputItem("cellphone"));
+        ci.append(frm.getInputItem("email"));
+        ci.append(frm.getInputItem("cardnumber"));
+
+        ci.append(htmTb.endTable());
+        htmTb.setWidth("245");
+
+        return ci.toString();
+    }
+    
+    public String getDemographics() throws Exception {
+        beforeFirst();
+        if (!rs.next() && !id.equals("0")) {return "";}
+        StringBuffer ci = new StringBuffer();
+        htmTb.replaceNewLineChar(false);
+        frm.setDftTextBoxSize("15");
+        frm.formItemOnOneRow = false;
+        frm.setRBItemOnOneRow(true);
+        frm.setLabelBold(true);
+        frm.setLabelPosition(frm.LABEL_ON_LEFT);
+        frm.setRbPosLeft();
+        htmTb.setWidth("100%");
+
+        ci.append(htmTb.startTable());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.startCell("colspan=3"));
+        ci.append(htmTb.startTable());
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("gender"));
+//        ci.append(htmTb.addCell("", "width=25%"));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.endTable());
+        ci.append(htmTb.endCell());
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.startCell("colspan=3"));
+        ci.append(htmTb.startTable("100%"));
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("maritalstatus"));
+//        ci.append(htmTb.addCell(""));
+//        ci.append(htmTb.endRow());
+//        ci.append(htmTb.startRow());
+//        ci.append(frm.getInputItem("relationshipid"));
+//        ci.append(htmTb.addCell(""));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.endTable());
+        ci.append(htmTb.endCell());
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("dob"));
+        if(rs.getRow() !=0) { 
+            ci.append(htmTb.addCell("Age: " + getAge(rs.getDate("dob"))));
+        } else {
+            ci.append(htmTb.addCell(""));
+        }
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.endTable());
+        frm.setDftTextBoxSize("30");
+        ci.append(htmTb.startTable());
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("referredby"));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("occupationid"));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(frm.getInputItem("employer"));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.startCell(htmTb.LEFT, "height=3px colspan=2"));
+        ci.append(htmTb.endCell());
+        ci.append(htmTb.endRow());
+
+        ci.append(htmTb.endTable());
+//        htmTb.setWidth("245");
+
+        return ci.toString();
+    }
+
+    public String showComments() throws Exception {
+        if(comments == null) { comments = new Comments(io); }
+        return comments.getPatientComments(id);
+    }
+
+    public String showAppointments() throws Exception {
+        if(appointments == null) { appointments = new Appointments(io); }
+        return appointments.getPatientAppointments(id);
+    }    
+  
+    public String showDetailedAppointments() throws Exception {
+        if(appointments == null) { appointments = new Appointments(io); }
+        return appointments.getDetailedPatientAppointments(id);
+    }    
+
+    public String showMissedAppointments() throws Exception {
+        if(appointments == null) { appointments = new Appointments(io); }
+        return appointments.getDetailedPatientMissedAppointments(id);
+    }    
+
+    public String showCharges() throws Exception {
+
+    // Initialize local variables
+        StringBuffer cmt = new StringBuffer();
+        double totalCharges = 0.00;
+        double dueToday = 0.00;
+        int divHeight = 115;
+        String dueTodayLink = "";
+        String maintLink = "";
+        
+//        if (1==1) {return "";}
+
+    // Create a resultset for the comments
+//        ResultSet lRs = io.opnRS("select * from patientchargesummary where patientid=" + id);
+//        ResultSet lRs = io.opnRS("select * from patientbalance where balance <> 0 and patientid=" + id);
+        String balanceQuery = "select a.id , a.date , a.description , a.chargeamount , " +
+                              "ifnull(e.paidamount,0) AS paidamount, cast((a.chargeamount - ifnull(e.paidamount,0)) as decimal) AS balance, " +
+                              "a.patientid AS patientid from " +
+                              "(SELECT * FROM patientchargesummary p where patientid=" + id + ") a " +
+                              "left join paidamounts e on a.id = e.chargeid";
+        
+        String dueTodayQuery = "select min(visitdate) as startdate, max(visitdate) as enddate, sum(copayamount)-sum(amount) as due from duetoday where patientid=" + id;
+        
+        ResultSet lRs = io.opnRS(balanceQuery);
+        ResultSet dRs = io.opnRS(dueTodayQuery);
+        
+        if(dRs.next()) {
+            dueToday = dRs.getDouble("due");
+            divHeight = 105;
+            dueTodayLink = "onClick=window.open('applypayments.jsp?&id=" + id + "&startDate=" + 
+                                dRs.getString("startdate") + "&endDate=" + dRs.getString("enddate") + 
+                                "&checkAmount=" + dRs.getString("due") + "&coPay=Y','Payments'," +
+                                "'width=750,height=550,scrollbars=no,left=100,top=100,'); ";
+        }
+        
+        dRs.close();
+        
+    // Start a new table to house the comments heading
+        htmTb.setWidth("300");
+        cmt.append(htmTb.startTable());
+
+    // Display the heading
+        cmt.append(htmTb.roundedTop(1,"","#030089","chargedivision"));
+        cmt.append(htmTb.startRow());
+        cmt.append(htmTb.headingCell("Open Items"));
+        cmt.append(htmTb.endRow());
+
+    //  End the table for the comments heading
+        cmt.append(htmTb.endTable());
+
+    // Start a division for the comments section
+        cmt.append("<div style=\"width: 300; height: " + divHeight + ";  overflow: auto; text-align: left;\">\n");
+
+    // List the comments
+        htmTb.setWidth("281");
+        cmt.append(htmTb.startTable());
+        while(lRs.next()) {
+            if (lRs.getDouble("balance")!=0) {
+                maintLink = "onClick=window.open('chargedetail.jsp?&id=" + lRs.getString("id") + "','Charges'," +
+                            "'width=750,height=550,scrollbars=no,left=100,top=100,'); ";
+
+                cmt.append(htmTb.startRow(maintLink + "style='cursor: hand;'"));
+                cmt.append(htmTb.addCell(Format.formatDate(lRs.getString("date"), "MM/dd/yyyy"), htmTb.LEFT, "width=20% style='cursor: hand; color: #030089;'"));
+                cmt.append(htmTb.addCell(lRs.getString("description"), htmTb.LEFT));
+                cmt.append(htmTb.addCell(lRs.getString("balance"),htmTb.RIGHT, "width=15%"));
+                cmt.append(htmTb.endRow());
+                totalCharges += lRs.getDouble("balance");
+            }
+        }
+        cmt.append(htmTb.endTable());
+
+    // End the division
+        cmt.append("</div>\n");
+
+    // Add a row at the end for total charges
+        cmt.append(htmTb.startTable());
+        cmt.append(htmTb.startRow());
+        cmt.append(htmTb.addCell("<b>Total Open Charges</b>", htmTb.RIGHT));
+        cmt.append(htmTb.addCell(Format.formatCurrency(totalCharges), htmTb.RIGHT));
+        cmt.append(htmTb.endRow());
+        cmt.append(htmTb.startRow());
+        cmt.append(htmTb.addCell("<b>Unapplied Patient Payments</b>", htmTb.RIGHT));
+        cmt.append(htmTb.addCell(Format.formatCurrency(getUnappliedPaymentTotal()), htmTb.RIGHT));
+        cmt.append(htmTb.endRow());
+        cmt.append(htmTb.startRow());
+        cmt.append(htmTb.addCell("<b>Balance</b>", htmTb.RIGHT));
+        cmt.append(htmTb.addCell(Format.formatCurrency(totalCharges - Double.parseDouble(""+getUnappliedPaymentTotal())), htmTb.RIGHT));
+        cmt.append(htmTb.endRow());
+        if(dueToday != 0.0) {
+            cmt.append(htmTb.startRow());
+            cmt.append(htmTb.addCell("<b>Due Today</b>", htmTb.RIGHT, "style='cursor: hand; color: red; font-weight: bold;' " + dueTodayLink));
+            cmt.append(htmTb.addCell(Format.formatNumber(dueToday,  "#####0.00; (#####0.00)"), htmTb.RIGHT, "style='cursor: hand; color: red; font-weight: bold;' " + dueTodayLink));
+            cmt.append(htmTb.endRow());
+        }
+        cmt.append(htmTb.endTable());
+
+        htmTb.setWidth("300");
+
+        return cmt.toString();
+    }    
+
+    public String getIndicators() throws Exception {
+        ind.setPatientId(id);
+        return ind.getPatientIndicators();
+    }
+    
+    public int getAge(java.sql.Date date1) {
+        int age = 0;
+        Calendar birthdate = Calendar.getInstance();
+        birthdate.setTime(date1);
+        Calendar now = Calendar.getInstance(); 
+        age = now.get(Calendar.YEAR) - birthdate.get(Calendar.YEAR);
+        birthdate.add(Calendar.YEAR, age);
+        if (now.before(birthdate)) 
+        age--;
+        return age;
+    }
+    
+    public String getMiniContactInfo(RWHtmlTable htmTb) throws Exception {
+        return getMiniContactInfo(htmTb, "");
+    }       
+    
+    public String getMiniContactInfo(RWHtmlTable htmTb, String fontSize) throws Exception {
+        String style = "";
+        
+        if (!fontSize.equals("")) {
+            style = "style=font-size:" + fontSize;
+        } else {
+            fontSize="12px";
+        }
+        beforeFirst();
+        if (!rs.next()) {return "";}
+        StringBuffer ci = new StringBuffer();
+        htmTb.replaceNewLineChar(false);
+//        htmTb.setWidth("130");
+//        htmTb.setBorder("0");
+//        ci.append("<table><tr><td>" + getVisitBar() + "</td><td>");
+        ci.append(htmTb.startTable("", "0"));
+
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.headingCell("<a href=patientmaint.jsp?id=" + getString("id") + ">" + rs.getString("firstname") + " " + rs.getString("lastname") + "</a>", "colspan=2 style=\"font-size: "+ fontSize + ";background color: silver;color: black;\""));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b>Home: ", "width=\"35%\"" + " " + style));
+        ci.append(htmTb.addCell(Format.formatPhone(rs.getString("homephone")), "width=\"45%\"" + " " + style));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b>Work: ",style));
+        ci.append(htmTb.addCell(Format.formatPhone(rs.getString("workphone")),style));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b>Cell: ",style));
+        ci.append(htmTb.addCell(Format.formatPhone(rs.getString("cellphone")),style));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b>DOB: ",style));
+        ci.append(htmTb.addCell(Format.formatDate(rs.getString("dob"),  "MM/dd/yyyy"),style));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b> Age: ",style));
+        ci.append(htmTb.addCell(""+getAge(rs.getDate("dob")),style));
+        ci.append(htmTb.endRow());
+        ci.append(htmTb.startRow());
+        ci.append(htmTb.addCell("<b>Card#: ",style));
+        ci.append(htmTb.addCell(rs.getString("cardnumber"),style));
+        ci.append(htmTb.endRow());
+
+        ci.append(htmTb.endTable());
+//        ci.append("</td></tr></table>");
+
+        beforeFirst();
+        return ci.toString();
+    }       
+
+    public String getVisitBar() throws Exception {
+        StringBuffer vb = new StringBuffer();
+    
+        Calendar calCalendar = Calendar.getInstance();
+        calCalendar.setTime(new java.util.Date());
+        String fromDate="";
+        String toDate="";
+        String myQuery="";
+        String cellStyle="";
+        int visitTotal=0;
+        boolean firstTime=true;
+
+        // Set to prior Saturday.  This will be the end date.
+        while (calCalendar.get(calCalendar.DAY_OF_WEEK)!=calCalendar.SATURDAY) {
+            calCalendar.add(calCalendar.DAY_OF_MONTH,-1);
+        }
+        
+        vb.append("<table cellpadding=0 cellspacing=0>");
+        for (int i=0;i<10;i++) {
+
+            toDate=Format.formatDate(calCalendar.getTime(), "yyyy-MM-dd");
+            calCalendar.add(calCalendar.DAY_OF_MONTH,-6);
+            fromDate=Format.formatDate(calCalendar.getTime(), "yyyy-MM-dd");
+            calCalendar.add(calCalendar.DAY_OF_MONTH,-1);
+
+            myQuery="select count(*) from visits where patientid=" + id + " and date between '" + fromDate + "' and '" + toDate + "'";
+            ResultSet aRs = io.opnRS(myQuery);
+            if (aRs.next()) {
+                visitTotal=aRs.getInt(1);
+            } else {
+                visitTotal=0;
+            }
+            if (visitTotal==0) {
+                cellStyle="style=\"width:5px; border: 1px solid Black;\"";
+            } else if(visitTotal==1) {
+                cellStyle="style=\"width:5px; border: 1px solid Black; background: yellow\"";
+            } else if(visitTotal==2) {
+                cellStyle="style=\"width:5px; border: 1px solid Black; background: blue\"";
+            } else {
+                cellStyle="style=\"width:5px; border: 1px solid Black; background: red\"";
+            }
+
+            vb.append("<tr><td " + cellStyle + ">&nbsp;</td></tr>");
+
+        }
+        vb.append("</table>");
+        return vb.toString();
+    }
+    
+    public String getXrays() throws Exception {
+        StringBuffer xr   = new StringBuffer();
+        StringBuffer pi   = new StringBuffer();
+        htmTb.setWidth("800");
+        htmTb.setBorder("0");
+        htmTb.replaceNewLineChar(false);
+        
+        ResultSet lRs = io.opnRS("Select * from patientdocuments where patientId=" + id + " and documentType=1 and identifierid=1 order by seq");
+
+        xr.append("<div style=\" height: 400; width: 550; overflow: auto;\">");
+        xr.append(htmTb.startTable("550"));
+
+        boolean leave=false;
+        while (!leave) {
+            xr.append(htmTb.startRow("height=200"));
+            if (lRs.next()) {
+                xr.append(htmTb.addCell(getImage(lRs.getString("documentpath"), lRs.getString("seq") + " - " + lRs.getString("description"), lRs.getInt("id")), htmTb.CENTER, "width=50%"));
+            } else {
+                xr.append(htmTb.addCell(getImage("", "", 0), htmTb.CENTER, "width=50% onClick=window.open(\"documentupload.jsp?patientid=" + id + "&documenttype=1&identifierid=1\",\"XRays\",\"width=500,height=200,left=150,top=200,toolbar=0,status=0,\"); style=\"cursor: hand;\" "));
+                leave=true;
+            }
+            if (lRs.next()) {
+                xr.append(htmTb.addCell(getImage(lRs.getString("documentpath"), lRs.getString("seq") + " - " + lRs.getString("description"), lRs.getInt("id")), htmTb.CENTER, "width=50%"));
+            } else {
+                xr.append(htmTb.addCell(getImage("", "", 0), htmTb.CENTER, "width=50% onClick=window.open(\"documentupload.jsp?patientid=" + id + "&documenttype=1&identifierid=1\",\"XRays\",\"width=500,height=200,left=150,top=200,toolbar=0,status=0,\"); style=\"cursor: hand;\" "));
+                leave=true;
+            }
+            xr.append(htmTb.endRow());
+        }
+        lRs.close();
+
+        xr.append(htmTb.endTable());
+        xr.append("</div>");
+
+        pi.append(htmTb.startTable());
+        pi.append(htmTb.startRow());
+
+        htmTb.setWidth("100%");
+        pi.append(htmTb.addCell("&nbsp;&nbsp;"));
+        
+        pi.append(htmTb.startCell(htmTb.LEFT));
+        pi.append(htmTb.startTable("210"));
+        pi.append(htmTb.startRow());
+        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getSymptoms()), "width=200 height=110"));
+        pi.append(htmTb.endRow());
+        pi.append(htmTb.startRow());
+        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getPatientCondition()), "width=200 height=110"));
+        pi.append(htmTb.endRow());
+        pi.append(htmTb.startRow());
+        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getXrayFindings()), "width=200 height=110"));
+        pi.append(htmTb.endRow());
+        pi.append(htmTb.startRow());
+        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getPatientProblems()), "width=200 height=110"));
+        pi.append(htmTb.endRow());
+        pi.append(htmTb.endTable());
+        pi.append(htmTb.endCell());
+        
+        pi.append(htmTb.addCell(htmTb.getFrame("#ffffff", xr.toString()), "rowspan=2"));
+        pi.append(htmTb.endRow());
+//        pi.append(htmTb.startRow());
+//        pi.append(htmTb.addCell(""));
+//        htmTb.setWidth("100%");
+        
+//        pi.append(htmTb.addCell(""));
+//        pi.append(htmTb.addCell(htmTb.getFrame("#ffffff", xr.toString())));
+//        pi.append(htmTb.endRow());
+        
+        pi.append(htmTb.endTable());        
+
+        return pi.toString();
+    }
+    
+    public String getImage(String documentPath, String description, int id) throws Exception {
+        String imagePath = "images/no_photo.jpg";
+        String imageDescription = "No Photo";
+        StringBuffer img = new StringBuffer();
+        String onClickOption = "";
+
+
+        if(!documentPath.equals("")) {
+            imagePath        = documentPath.replaceAll("\\\\", "/");
+            if(imagePath.substring(0,2).equals("//") || imagePath.substring(0,2).toUpperCase().equals("C:")) { 
+                imagePath=imagePath.substring(imagePath.indexOf("/medical"));
+            }
+            if(imagePath.indexOf("/medical/") > -1  && imagePath.indexOf("/medicaldocs/") == -1) { imagePath = "/medicaldocs" + imagePath.substring(imagePath.lastIndexOf("/medical/") + "/medical".length()); }
+            imageDescription = description;
+        }
+
+        if(id != 0) { onClickOption = "onClick=displayImage('" + id + "') style='cursor: hand;'"; }
+
+        htmTb.setWidth("100%");
+        img.append(htmTb.startTable());
+        img.append(htmTb.startRow());
+        img.append(htmTb.addCell("<image src=\"" + imagePath + "\" height=180 width=180 " + onClickOption + ">", htmTb.CENTER));
+        img.append(htmTb.endRow());
+        img.append(htmTb.startRow());
+        img.append(htmTb.addCell(imageDescription, htmTb.CENTER));
+        img.append(htmTb.endRow());
+        img.append(htmTb.endTable());
+
+        return img.toString();
+    }    
+    
+    
+    public void generateAccountNumber() throws Exception {
+        setUpdatable(true);
+        refresh();
+        if(rs.next()) {
+            String accountNumber=rs.getString("firstname").substring(0,1) + rs.getString("lastname").substring(0,1);
+            accountNumber += "00000".substring(0,5-rs.getString("id").length()) + rs.getString("id");
+            rs.updateString("accountnumber", accountNumber);
+            rs.updateRow();
+        }
+    }
+    
+    public void updatePatientPlanInfo(int planId) throws Exception {
+        setResultSet(io.opnUpdatableRS("select * from patients where planid=" + planId));
+        if(rs.next()) {
+            rs.updateInt("planid", 0);
+            rs.updateRow();
+        } else {
+            ResultSet pRs = io.opnRS("select id, patientid from patientplan where id=" + planId);
+            if(pRs.next()) {
+                rs = io.opnUpdatableRS("select * from patients where id=" + pRs.getString("patientid"));
+                if(rs.next()) {
+                    rs.updateInt("planid", pRs.getInt("id"));
+                    rs.updateRow();
+                    if(plan == null) { plan = new PatientPlan(io, 0); }
+                    plan.setPlanId(planId);
+                    plan.updatePlanDetails();
+                }
+            }
+            pRs.close();
+        }
+    }    
+    
+    public void updatePatientDocumentInfo(int documentType, int identifierId, String targetFile, String description) throws Exception {
+        ArrayList dp            = new ArrayList();
+        ArrayList ri            = new ArrayList();
+        int x                   = 0;
+        
+        if(document == null) {
+            document = new Document(io, Integer.parseInt(id), documentType, identifierId);
+        }
+        
+        boolean multiplesAlowed = document.areMultiplesAlowed(documentType, identifierId);
+        ResultSet lRs;
+        
+        if(!multiplesAlowed) {
+            lRs = io.opnRS("select id, documentpath from patientdocuments where patientid=" + id + " and documenttype=" + documentType);
+            while(lRs.next()) {
+                dp.add(lRs.getString("documentpath"));
+                ri.add(lRs.getString("id"));
+            }
+
+            String target = "";
+            for(x=0; x<dp.size(); x++) {
+                target = (String)dp.get(x);
+                if(target.equals(targetFile)) { break; }
+            }
+
+            if(!dp.contains(targetFile) && !multiplesAlowed) {
+
+                // Write the file information to the database
+                lRs = io.opnUpdatableRS("select * from patientdocuments where patientid=" + id + " and documenttype=" + documentType + " and identifierid=" + identifierId);
+                if(!lRs.next()) {
+                    lRs.moveToInsertRow();
+                    lRs.updateInt("patientid",  Integer.parseInt(id));
+                    lRs.updateInt("documenttype", documentType);
+                    lRs.updateInt("identifierid", identifierId);
+                    lRs.updateString("documentpath", targetFile);
+                    lRs.updateString("description", description);
+                    lRs.insertRow();
+                } else {
+                    lRs.updateString("documentpath", targetFile);
+                    lRs.updateString("description", description);
+                    lRs.updateRow();
+                }
+            } else {
+                lRs = io.opnUpdatableRS("select * from patientdocuments where id=" + (String)ri.get(x));
+                if(lRs.next()) {
+                    lRs.updateString("description", Format.formatDate(new java.util.Date(), "MM/dd/yyyy"));
+                    lRs.updateRow();
+                }
+            }
+        } else {
+        // multiples are alowed so we always want to write the file information to the database
+            lRs = io.opnUpdatableRS("select * from patientdocuments where id=0");
+            lRs.moveToInsertRow();
+            lRs.updateInt("patientid",  Integer.parseInt(id));
+            lRs.updateInt("documenttype", documentType);
+            lRs.updateInt("identifierid", identifierId);
+            lRs.updateString("documentpath", targetFile);
+            lRs.updateString("description", description);
+            lRs.insertRow();          
+        }
+
+        lRs.close();        
+    }
+    
+    public int findAppointmentInfo() throws Exception {
+        int appointmentId = 0;
+        ResultSet aRs = io.opnUpdatableRS("select * from appointments where patientid=" + id + " and date=current_date and timein='0001-01-01 00:00:00' order by time");
+        if(aRs.next()) {
+            setTimestamp();
+            appointmentId = aRs.getInt("id");
+            aRs.updateTimestamp("timein",  timeStamp);
+            aRs.updateRow();
+        }
+        aRs.close();
+        return appointmentId;
+    }
+    
+    public void findVisitInfo(Visit visit, int location) throws Exception {
+        findVisitInfo(visit, location, findAppointmentInfo()); 
+    }
+
+    public void findVisitInfo(Visit visit, int location, int apptId) throws Exception {
+        visit.setResultSet(io.opnRS("select * from visits where patientid=" + id + " and date=current_date"));
+        if(visit.next()) {
+            visit.setId(visit.getString("id"));
+        } else {
+            visit.setResultSet(io.opnRS("select * from visits where appointmentId=" + apptId ));
+            if(apptId>0 && visit.next()) {
+                visit.setId(visit.getString("id"));
+            } else {
+                visit.setId(0);
+            }
+        }
+        visit.beforeFirst();
+        visit.setLocationId(location);
+        visit.setPatientId(Integer.parseInt(id));
+        if (apptId>0) {
+            visit.setAppointmentId(apptId); 
+        }
+        visit.update();
+    }
+    public String getSearchBubble(String submitToUrl) throws Exception {
+        RWHtmlForm frm = new RWHtmlForm("Search",submitToUrl);
+        frm.setMethod("GET");
+        htmTb.replaceNLChar = false;
+        htmTb.setWidth("125");
+        htmTb.setBorder("0");
+        StringBuffer sB = new StringBuffer();
+
+        sB.append(htmTb.startTable());
+        sB.append(frm.startForm());
+        sB.append(htmTb.startRow());
+        sB.append(htmTb.addCell("&nbsp;&nbsp;" + frm.textBox("","srchString", "class=tBoxText width=100 size=18")));
+        sB.append(htmTb.addCell(frm.submitButton("go", "class=button", "gobutton")));
+        sB.append(htmTb.endRow());
+        sB.append(frm.endForm());
+        sB.append(htmTb.endTable());
+
+        return htmTb.getFrame(htmTb.BOTH, "", "white", 1, sB.toString());
+
+    }
+    public String getSearchResults(String srchString, String rowUrl, String idField) throws Exception {
+        htmTb.replaceNLChar = false;
+        htmTb.setWidth("135");
+        htmTb.setBorder("0");
+        
+        String cardCondition = "";
+        String searchSql = "";
+        String searchSql2 = "";
+        String lastSrch = "";
+        String firstSrch = "";
+        String whereClause = "";
+        int firstBlank = 0;
+        int searchStringLength = 0;
+        ResultSet lRs;
+
+        try {
+            cardCondition = "or cardnumber = " + Integer.parseInt(srchString) + " ";
+        } catch (Exception e) {
+
+        }
+        if (!srchString.equals("*EMPTY")) {
+            if(srchString.equals("")) { return ""; }
+
+            firstBlank = srchString.indexOf(' ');
+            searchStringLength = srchString.length();
+            
+            if (firstBlank > 0 && searchStringLength-1>firstBlank) {
+                lastSrch = srchString.substring(0, firstBlank);
+                firstSrch = srchString.substring(firstBlank).trim();
+                whereClause = "lastname like \"" + lastSrch + "%\" and firstname like \"" + firstSrch + "%\" ";
+            } else {
+                whereClause = "lastname like \"%" + srchString + "%\" or " +
+                    "firstname like \"%" + srchString + "%\" " + cardCondition;
+            }
+            searchSql = "select id as " + idField + ", lastname, firstname, convert(DATEDIFF(NOW(), dob)/365.25,UNSIGNED ) dob from patients where  " +
+                    whereClause +
+                    " order by lastname, firstname";
+            searchSql2 = "select id as " + idField + ", lastname, firstname, convert(DATEDIFF(NOW(), dob)/365.25,UNSIGNED ) dob from patients where  (" +
+                    whereClause +
+                    ") and active order by lastname, firstname";
+            lRs = io.opnRS(searchSql);
+            if (lRs.next()) {
+                setId(lRs.getInt(1));
+                if(!lRs.next()) {
+                    String miniContactInfo=htmTb.getFrame(htmTb.BOTH, "", "white", 1, getMiniContactInfo(htmTb));
+                    lRs.close();
+                    lRs=null;
+                    return miniContactInfo;
+                } else {
+                    searchSql=searchSql2;
+                    lRs = io.opnRS(searchSql);
+                    if(lRs.next()) { 
+                        setId(lRs.getInt(1));
+                        if(!lRs.next()) {
+                            String miniContactInfo=htmTb.getFrame(htmTb.BOTH, "", "white", 1, getMiniContactInfo(htmTb));
+                            lRs.close();
+                            lRs=null;
+                            return miniContactInfo;
+                        }
+                    }
+                }
+            }
+        } else {
+            String rv = getMiniContactInfo(htmTb);
+            if (rv=="") {
+                return rv;
+            } else {
+                return htmTb.getFrame(htmTb.BOTH, "", "white", 1, rv);
+            }
+        }
+
+    // We don't know which ID they want..... Set it to 0.
+        setId(0);
+        
+    // Create an RWFiltered List object to show the occupations
+        RWFilteredList lst = new RWFilteredList(io);
+
+    // Create an array with the column headings
+        String [] columnHeadings = { "id",  "Last Name", "First Name", "DOB"};
+
+    // Set special attributes on the filtered list object
+        lst.setTableBorder("0");
+        lst.setCellPadding("1");
+        lst.setCellSpacing("0");
+        lst.setTableWidth("130");
+        lst.setAlternatingRowColors("white","lightgrey");
+        lst.setUrlField(0);
+        lst.setNumberOfColumnsForUrl(3);
+        lst.setRowUrl(rowUrl);
+        lst.setShowRowUrl(true);
+        lst.setShowComboBoxes(false);
+        lst.setShowColumnHeadings(false);
+
+    // Set specific column widths
+        String [] cellWidths = {"0", "10", "20","10"};
+        lst.setColumnWidth(cellWidths);
+        beforeFirst();
+    // Show the list of occupations
+        String returnValue=htmTb.getFrame(htmTb.BOTH, "","white",3,"<div style=\"width: 130; height: 370; overflow: auto;\">" + lst.getHtml(searchSql, columnHeadings) + "</div>");
+        return returnValue;
+
+    }
+    
+    public BigDecimal getDefaultPayment(int itemId) throws Exception {
+        return getDefaultPayment(itemId, 0);
+    }
+
+    public BigDecimal getDefaultPayment(int itemId, int providerId) throws Exception {
+        workRs = io.opnRS("select amount from defaultpayments where itemid=" + itemId + " and patientid = " + id + " and providerid = " + providerId);
+        if (workRs.next()) {
+            returnAmount=workRs.getBigDecimal("amount");
+            workRs.close();
+            workRs=null;
+            return returnAmount;
+        } else {
+            workRs = io.opnRS("select amount from defaultpayments where itemid=" + itemId + " and patientid = 0 and providerid = " + providerId);
+            if (workRs.next()) {
+                returnAmount=workRs.getBigDecimal("amount");
+                workRs.close();
+                workRs=null;
+                return returnAmount;
+            } else {
+                workRs.close();
+                workRs=null;
+                return BigDecimal.valueOf(0);
+            }
+        }
+    }
+
+    public BigDecimal getCopay(int itemId, int providerId) throws Exception {
+        workRs = io.opnRS("select copay from defaultpayments where itemid=" + itemId + " and patientid = " + id + " and providerid = " + providerId);
+        if (workRs.next()) {
+            returnAmount=workRs.getBigDecimal("copay");
+            workRs.close();
+            return returnAmount;
+        } else {
+            workRs = io.opnRS("select copay from defaultpayments where itemid=" + itemId + " and patientid = 0 and providerid = " + providerId);
+            if (workRs.next()) {
+                returnAmount=workRs.getBigDecimal("copay");
+                workRs.close();
+                return returnAmount;
+            } else {
+                workRs.close();
+                return BigDecimal.valueOf(0);
+            }
+        }
+    }
+    
+    public String getPatientAging(RWHtmlTable htmTb, String rowColor) throws Exception {
+        return getPatientAging(htmTb, rowColor, 0, "");
+    }
+    
+    public String getPatientAging(RWHtmlTable htmTb, String rowColor, String selectedCharges) throws Exception {
+        return getPatientAging(htmTb, rowColor, 0, selectedCharges);
+    }
+
+    public String getPatientAging(RWHtmlTable htmTb, String rowColor, int seperatorHeight) throws Exception {
+        return getPatientAging(htmTb, rowColor, seperatorHeight, "");
+    }
+    
+    public String getPatientAging(RWHtmlTable htmTb, String rowColor, int seperatorHeight, String selectedCharges) throws Exception {
+        String baseQuery="select p.id, sum(c.chargeamount) charges, " +
+            "sum(ifnull((select sum(amount) from payments where chargeid=c.id),0.00)) payments " +
+            "from charges c " +
+            "left join visits v on c.visitid=v.id " +
+            "left join patients p on p.id=v.patientid ";
+        String grouping=" group by p.id";
+        StringBuffer pa=new StringBuffer();
+        
+        htmTb.setCellVAlign("BOTTOM");
+        pa.append(htmTb.startTable());
+        pa.append(htmTb.startRow("height=" + seperatorHeight));
+        pa.append(htmTb.addCell("Aging", htmTb.CENTER, "style='font-size:14px;'"));
+        pa.append(htmTb.endRow());
+        pa.append(htmTb.endTable());
+        
+        htmTb.setBorder("1");
+        htmTb.setCellVAlign("TOP");
+        pa.append(htmTb.startTable());
+
+        ResultSet ageItemRs=io.opnRS("select * from agingitems order by seq");
+        
+        pa.append(htmTb.startRow());
+        while(ageItemRs.next()) { pa.append(htmTb.headingCell(ageItemRs.getString("description"))); }
+        pa.append(htmTb.headingCell("Balance"));
+        pa.append(htmTb.endRow());
+        
+        int i=0;
+        double patientTotal=0.0;
+
+        pa.append(htmTb.startRow());
+        ageItemRs.beforeFirst();
+        while(ageItemRs.next()) {
+            String thisQuery=baseQuery;
+            String where=" where p.id=" + getId() + " " + selectedCharges;
+            if(ageItemRs.getInt("mindays")==0 && ageItemRs.getInt("maxdays") != 0) {
+                where += " and v.date>DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("maxdays") + "' DAY) ";
+            } else if(ageItemRs.getInt("mindays") != 0 && ageItemRs.getInt("maxdays") != 0) {
+                where += " and v.date between DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("maxdays") + "' DAY) and DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("mindays") + "' DAY) ";
+            }
+            
+            thisQuery=thisQuery+where+grouping;
+
+            ResultSet agingRs=io.opnRS(thisQuery);
+            if(agingRs.next()) {
+                double balance=agingRs.getDouble("charges");
+                balance-=agingRs.getDouble("payments");
+                pa.append(htmTb.addCell(Format.formatCurrency(balance), htmTb.RIGHT,"width=75 style='background: " + rowColor + "; '"));
+                patientTotal += balance;
+            } else {
+                pa.append(htmTb.addCell(Format.formatCurrency(0.0), htmTb.RIGHT,"width=75 style='background: " + rowColor + "; '"));                
+            }
+            agingRs.close();
+            i++;
+        }
+        pa.append(htmTb.addCell(Format.formatCurrency(patientTotal), htmTb.RIGHT, "width=75 style='background: " + rowColor + "; '"));
+
+        pa.append(htmTb.endRow());
+        pa.append(htmTb.endTable());
+        
+        ageItemRs.close();
+           
+        return pa.toString();
+    }
+    public BigDecimal getUnappliedPaymentTotal() throws Exception {
+        BigDecimal total= new BigDecimal(0.00);
+        ResultSet uaRs=io.opnRS("select sum(amount) from payments where chargeid=0 and patientid = " + id);
+        if (uaRs.next() && uaRs.getBigDecimal(1)!=null) {
+            total=uaRs.getBigDecimal(1);
+        }
+        
+        return total;
+    }
+    
+    public void delete() throws Exception {
+        if(!id.equals("0")) {
+            deleteAppointments();
+            deleteComments();
+            deleteDefaultPayments();
+            deleteDoctorNotes();
+            deletePatientDocuments();
+            deletePatientIndicators();
+            deletePatientInsurance();
+            deletePatientIndicators();
+            deletePatientMessages();
+            deletePatientPlan();
+            deletePatientSymptoms();
+            deletePayments();
+            deletePaymentSchedule();
+            deleteVisits();
+            deleteXrayFindings();
+            
+            this.setUpdatable(true);
+            refresh();
+            rs.beforeFirst();
+            if(rs.next()) { rs.deleteRow(); }
+        }
+    }
+    
+    public void deleteAppointments() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from appointments where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deleteComments() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from comments where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deleteCharges() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement batchChargesPs=io.getConnection().prepareStatement("delete from batchcharges where chargeid in (select id from charges where visitid in (select id from visits where patientid=" + id + "))");
+            batchChargesPs.execute();
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from charges where visitid in (select id from visits where patientid=" + id + ")");
+            lPs.execute();
+        }
+    }
+    
+    public void deleteDefaultPayments() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from defaultpayments where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deleteDoctorNotes() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from doctornotes where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientDocuments() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientdocuments where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientIndicators() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientindicators where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientInsurance() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientinsurance where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientMessages() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientmessages where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientPlan() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientplan where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientProblems() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientproblems where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePatientSymptoms() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from patientsymptoms where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePayments() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from payments where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deletePaymentSchedule() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from paymentschedule where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deleteVisits() throws Exception {
+        if(!id.equals("0")) {
+            deleteCharges();
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from visits where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+    public void deleteXrayFindings() throws Exception {
+        if(!id.equals("0")) {
+            PreparedStatement lPs=io.getConnection().prepareStatement("delete from xrayfindings where patientid=" + id);
+            lPs.execute();
+        }
+    }
+    
+
+}

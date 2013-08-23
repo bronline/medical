@@ -1,0 +1,50 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package medical.utiils;
+
+import com.rwtools.tools.db.utils.*;
+import java.sql.ResultSet;
+import tools.RWConnMgr;
+
+/**
+ *
+ * @author Randy
+ */
+public class UpdateChiroDatabases {
+    public static void main(String [] args) throws Exception {
+        String mySql="select * from userinfo " +
+                        "left join userroles on userinfo.id=userroles.rolprf " +
+                        "left join roles on roles.id=userroles.role " +
+                        "where roles.role='MEDICAL'";
+
+        RWConnMgr chiroIo=new RWConnMgr("chiropracticeonline.net", "chiro_site", "chiro_site", "root", RWConnMgr.MYSQL);
+        ResultSet userRs=chiroIo.opnRS(mySql);
+
+        while(userRs.next()) {
+            String databaseName=userRs.getString("secprf");
+            System.out.println("Now Checking " + databaseName);
+            DBCompare dbCompare=new DBCompare();
+
+            try {
+                RWConnMgr fromIo=new RWConnMgr("localhost", "medical", "root", "root", RWConnMgr.MYSQL);
+                RWConnMgr toIo=new RWConnMgr("bronlinesolutions.com", databaseName, databaseName, databaseName, RWConnMgr.MYSQL);
+
+                dbCompare.setFromIo(fromIo);
+                dbCompare.setToIo(toIo);
+                dbCompare.setProcessUpdates(true);
+
+                dbCompare.compareSchemas();
+            } catch (Exception e) {
+                System.out.print("There was a problem comparing schemas for " + databaseName);
+            }
+            
+            System.out.println("");
+            System.out.println("");
+        }
+        userRs.close();
+    }
+
+}

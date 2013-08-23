@@ -1,0 +1,132 @@
+<style type="text/css">
+
+.style1 {   color: #000000;
+            font-size: 11px;
+            font-family: arial, helvetica, sans-serif;
+            font-weight: bold;
+            padding-left:10px; }
+
+.pageHeading { color: #030089;
+               font-size: 16px;
+               font-family: verdana, helvetica, sans-serif;
+               font-weight: bold; }
+
+.empInfoHdr { color: #2c57a7;
+              font-size: 14px;
+              font-family: verdana, helvetica, sans-serif;
+              font-weight: bold; }
+
+.empInfoDtl { color: black;
+              font-size: 12px;
+              font-family: verdana, helvetica, sans-serif;
+              font-weight: bold; }
+
+.banner     { color: #030089;
+              font-size: 21px;
+              font-family: arial, helvetica, sans-serif;
+              font-weight: bold;
+              padding-left:10px; }
+
+div#section    { color: #ffffff;
+              font-size: 14px;
+              font-family: arial, helvetica, sans-serif;
+              font-weight: bold;
+              background: #666666; 
+              text-decoration: none; }
+
+div#section1    { color: #ffffff;
+              font-size: 14px;
+              font-family: arial, helvetica, sans-serif;
+              font-weight: bold;
+              background: #666666; 
+              text-decoration: none; }
+
+div#section2    { color: #ffffff;
+              font-size: 14px;
+              font-family: arial, helvetica, sans-serif;
+              font-weight: bold;
+              background: #666666; 
+              text-decoration: none; }
+
+.menubackground { background: #cccccc; }
+
+.menuLink   { color: #333333;
+              font-size: 11px;
+              font-family: arial, helvetica, sans-serif;
+              text-decoration: none; 
+              background: #cccccc}
+
+a.menuLink:hover { color: #333333;
+                   font-size: 11px;
+                   font-family: arial, helvetica, sans-serif;
+                   font-weight: bold;
+                   text-decoration:underline; }
+
+a       { color: #030089; text-decoration: none; }
+a:hover { color: #2c57a7; text-decoration: underline; }
+
+h1      { color: #030089;
+          font-weight: bold;
+          font-size: 16px;
+          font-family: Arial, Helvetica, sans-serif; }
+
+body, td, p { color: #000000;
+              font-size: 11px;
+              font-family: Arial, Helvetica, sans-serif; }
+
+th	    { font-size: 11px;
+              font-family: Arial, Helvetica, sans-serif;
+	      background color: #6633ff;
+	      color: white;  }
+			
+.cBoxText	{ font-size: 11px; 
+                  font-family: Arial, Helvetica, sans-serif; }
+.tBoxText       { font-size: 11px; 
+                  font-family: Arial, Helvetica, sans-serif; }
+.tAreaText      { font-size: 11px; 
+                  font-family: Arial, Helvetica, sans-serif; }
+
+#commentDiv     { width: 312;
+                  height: 55;
+                  overflow: auto;
+                  text-align: left; }
+
+#datesDiv       { width: 212;
+                  height: 55;
+                  overflow: auto;
+                  text-align: left; }
+
+#givingDiv      { width: 191;
+                  height: 55;
+                  overflow: auto;
+                  text-align: left; }
+
+#familyMembers  { width: 320;
+                  height: 72;
+                  overflow: auto;
+                  text-align: left; }
+
+div#nifty       { width: 100%; background: #fff}
+
+div#pagetop     { background: #fff}
+div#pagebottom     { background: #fff}
+
+ul#nav li    { background: #ffffff }
+
+TD.hover    { COLOR: #030089; font-weight:bold; cursor: pointer; }
+TD.normal   { COLOR: #000000; font-weight:normal; CURSOR: default; }
+TD.selected { COLOR: #030089; font-weight:bold; }
+
+.button_old     { background: #030089; color: #ffffff; font-size: 9px; }
+.linkMenu   { color: #ffffff; font-size: 11px; font-family: arial, helvetica, sans-serif; font-weight: bold; }
+.button     { background: #666666; color: #ffffff; font-size: 9px; }
+
+b.rtop, b.rbottom{display:block;background: #cccccc}
+b.rtop b, b.rbottom b{display:block;height: 1px;
+    overflow: hidden; background: #fff}
+b.r1{margin: 0 5px}
+b.r2{margin: 0 3px}
+b.r3{margin: 0 2px}
+b.rtop b.r4, b.rbottom b.r4{margin: 0 1px;height: 2px}
+
+</style>
