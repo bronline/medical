@@ -1,4 +1,4 @@
 <% 
-    session.setAttribute("databaseName", "katchley");
+    session.setAttribute("databaseName", "medical");
     response.sendRedirect("patientmaint.jsp");
 %>
