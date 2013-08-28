@@ -288,6 +288,9 @@ public class CMS1500 extends Document {
         setRepeatingMap(repeatingMapRs);
         fillFieldsWithData(documentRs);
 
+        documentData=new String[500][4];  // RKW 08/26/2013 - moved to here to accomadate 0 records in repeating recordset
+        int x=0;
+
         setRepeatingRs(repeatingDataRs, patientId);
 
         for(int a=0;a<repeatingItems.size();a+=6) {
@@ -296,8 +299,8 @@ public class CMS1500 extends Document {
                 if(b<repeatingItems.size()) { numItems+=((Document)repeatingItems.get(b)).documentFields.size(); }
             }
 
-            documentData=new String[500][4];
-            int x=0;
+//            documentData=new String[500][4]; RKW 8/26/2013 - commented do accomadate 0 records in the repeating recordset
+//            int x=0;
 
             // Add the repeating items and calculate the total
             Document rpt;
@@ -332,44 +335,45 @@ public class CMS1500 extends Document {
             
             setDocumentFieldValue("balancedollars", Pad.left(dollarAmount,5," "));            
             setDocumentFieldValue("balancecents", centsAmount);
-    
-            doPatientInformation();
-            doInsuredsInformation(patientId);
-            doBox9();
-            doBox12();
-            doBox13();
-            doBox14();
-            doBox19(patientId);
-            doBox20();
-            doBox23();
-            doBox25();
-            doBox27();
-            doBox31();
-            doBox32();
-            doBox33();
+        }   // RKW 08/26/2013 - moved to here to accomadate 0 records in repeating recordset
 
-            // Add the fields from the main document          
-            for(Enumeration e=documentFields.keys(); e.hasMoreElements();) {
-                String key=(String)e.nextElement();
-                try { 
-                    documentData[x]=(String [])documentFields.get(key);
-                } catch (Exception except) {
-                    System.out.println(io.getSystemName() + blanks.substring(io.getSystemName().length()) + " : " + new java.util.Date() + " - CMS1500 ***** ERROR adding items to main document***** " + except.getMessage());
-                }
-                x++;
-            }
+        doPatientInformation();
+        doInsuredsInformation(patientId);
+        doBox9();
+        doBox12();
+        doBox13();
+        doBox14();
+        doBox19(patientId);
+        doBox20();
+        doBox23();
+        doBox25();
+        doBox27();
+        doBox31();
+        doBox32();
+        doBox33();
 
-            sortedArray=new String[documentData.length][documentData[0].length];
-//            sortedArray = new String[1000][5];
-            for(int z=0;z<documentData.length;z++) {
-                for(int y=0;y<documentData[z].length;y++) { if(documentData[z][y] == null) { documentData[z][y]=""; } }
+        // Add the fields from the main document
+        for(Enumeration e=documentFields.keys(); e.hasMoreElements();) {
+            String key=(String)e.nextElement();
+            try {
+                documentData[x]=(String [])documentFields.get(key);
+            } catch (Exception except) {
+                System.out.println(io.getSystemName() + blanks.substring(io.getSystemName().length()) + " : " + new java.util.Date() + " - CMS1500 ***** ERROR adding items to main document***** " + except.getMessage());
             }
-            sortArray(documentData, 2, true);
-            documentData=sortedArray;
-            
-            removeSpecialCharactersFromData(documentData);
-//            formFieldsSet=true;
+            x++;
         }
+
+        sortedArray=new String[documentData.length][documentData[0].length];
+//            sortedArray = new String[1000][5];
+        for(int z=0;z<documentData.length;z++) {
+            for(int y=0;y<documentData[z].length;y++) { if(documentData[z][y] == null) { documentData[z][y]=""; } }
+        }
+        sortArray(documentData, 2, true);
+        documentData=sortedArray;
+
+        removeSpecialCharactersFromData(documentData);
+//            formFieldsSet=true;
+//        } RKW 8/26/2013 - commented do accomadate 0 records in the repeating recordset
         
         documentRs.close();
         repeatingDataRs.close();
