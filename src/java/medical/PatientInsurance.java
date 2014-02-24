@@ -9,6 +9,8 @@
  */
 
 package medical;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import tools.*;
 import tools.utils.*;
 import java.sql.*;
@@ -18,7 +20,7 @@ import java.util.ArrayList;
  *
  * @author BR Online Solutions
  */
-public class PatientInsurance extends RWResultSet {
+public class PatientInsurance extends MedicalResultSet {
     private StringBuffer ins        = new StringBuffer();
     private RWHtmlTable htmTb       = new RWHtmlTable();
     private RWInputForm frm         = new RWInputForm();
@@ -140,7 +142,7 @@ public class PatientInsurance extends RWResultSet {
         ins.append(frm.getInputItem("insuranceeffective"));
         ins.append(frm.getInputItem("insurancevisits"));
         ins.append(frm.getInputItem("groupname"));
-        ins.append(frm.getInputItem("guarantor"));
+        ins.append(frm.getInputItem("guarantor", "onChange=\"guarantorStatusChange(this)\""));
         ins.append(frm.getInputItem("relationshipid"));
         ins.append(frm.getInputItem("deductable"));
         //ins.append(frm.getInputItem("copayamount"));
@@ -155,16 +157,16 @@ public class PatientInsurance extends RWResultSet {
         ins.append(frm.getInputItem("copayaspercent"));
         ins.append(htmTb.endTable());
 
-        ins.append("<div class=\"accordionButton\">Benefit Notes</div>");
-        ins.append("<div class=\"accordionContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append("<div class=\"accordionButton\" id=\"benefitNotesButton\">Benefit Notes</div>");
+        ins.append("<div class=\"accordionContent\" id=\"benefitNotesContent\" style=\"display: none; background-color: #ffffff;\">");
         ins.append(htmTb.startTable("100%", "0"));
         ins.append(frm.getInputItem("notes"));
         ins.append(htmTb.endTable());
         ins.append("</div>");
         ins.append("</div>");
 
-        ins.append("<div class=\"accordionButton\">Authorization Information</div>");
-        ins.append("<div class=\"accordionContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append("<div class=\"accordionButton\" id=\"authorizationInformationButton\">Authorization Information</div>");
+        ins.append("<div class=\"accordionContent\" id=\"authorizationInformationContent\" style=\"display: none; background-color: #ffffff;\">");
         ins.append(htmTb.startTable("100%", "0"));
         ins.append(frm.getInputItem("referenceNumber"));
         ins.append(frm.getInputItem("effectivedate"));
@@ -174,8 +176,8 @@ public class PatientInsurance extends RWResultSet {
         ins.append("</div>");
         ins.append("</div>");
 
-        ins.append("<div class=\"accordionButton\">Guarantor Information</div>");
-        ins.append("<div class=\"accordionContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append("<div class=\"accordionButton\" id=\"guarantorInformationButton\">Guarantor Information</div>");
+        ins.append("<div class=\"accordionContent\" id=\"guarantorInformationContent\" style=\"display: none; background-color: #ffffff;\">");
         ins.append(htmTb.startTable("100%", "0"));
         ins.append(frm.getInputItem("hicfa4"));
         ins.append(frm.getInputItem("hicfa7Address"));
@@ -199,7 +201,91 @@ public class PatientInsurance extends RWResultSet {
         
         return ins.toString();
     }
-    
+
+    public String getIntakeInputForm() throws Exception {
+        beforeFirst();
+        ins.delete(0, ins.length());
+        frm.setResultSet(this);
+
+    // Set Arrays for hidden fields
+        String [] var = { "patientid" };
+        String [] val = { "" + patientId };
+        frm.setPreLoadFields(var);
+        frm.setPreLoadValues(val);
+        frm.setName("patientInsuranceForm");
+
+    // Set display attributes for the input form
+        frm.setDftTextBoxSize("20");
+        frm.setDftTextAreaCols("35");
+        frm.setDftTextAreaRows("3");
+        frm.setDisplayDeleteButton(true);
+        frm.setShowDatePicker(true);
+        frm.setLabelBold(true);
+        frm.setUpdateButtonText("  save  ");
+        frm.setDeleteButtonText("remove");
+
+        ins.append(frm.startForm());
+        frm.getInputItem("id");
+
+        ins.append(htmTb.startTable("100%", "0"));
+
+        ins.append(frm.getInputItem("providerid", "onChange=checkForNew(this,'newpayer.jsp')"));
+        ins.append(frm.getInputItem("planname"));
+        ins.append(frm.getInputItem("primaryprovider"));
+        ins.append(frm.getInputItem("providernumber"));
+        ins.append(frm.getInputItem("providergroup"));
+        ins.append(frm.getInputItem("relationshipid", "onChange=\"guarantorStatusChange(this)\""));
+
+        ins.append(htmTb.endTable());
+
+        ins.append("<div class=\"accordionButton\" id=\"benefitNotesButton\">Benefit Notes</div>");
+        ins.append("<div class=\"accordionContent\" id=\"benefitNotesContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append(htmTb.startTable("100%", "0"));
+        ins.append(frm.getInputItem("notes"));
+        ins.append(htmTb.endTable());
+        ins.append("</div>");
+        ins.append("</div>");
+
+        ins.append("<div class=\"accordionButton\" id=\"authorizationInformationButton\">Authorization Information</div>");
+        ins.append("<div class=\"accordionContent\" id=\"authorizationInformationContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append(htmTb.startTable("100%", "0"));
+        ins.append(frm.getInputItem("referenceNumber"));
+        ins.append(frm.getInputItem("effectivedate"));
+        ins.append(frm.getInputItem("expirationdate"));
+        ins.append(frm.getInputItem("preauthvisits"));
+        ins.append(htmTb.endTable());
+        ins.append("</div>");
+        ins.append("</div>");
+
+//        ins.append("<div class=\"accordionButton\" id=\"guarantorInformationButton\">Guarantor Information</div>");
+//        ins.append("<div class=\"accordionContent\" id=\"guarantorInformationContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append("<div id=\"guarantorInformationContent\" style=\"display: none; background-color: #ffffff;\">");
+        ins.append(htmTb.startTable("100%", "0"));
+        ins.append(frm.getInputItem("hicfa4"));
+        ins.append(frm.getInputItem("hicfa7Address"));
+        ins.append(frm.getInputItem("hicfa7City"));
+        ins.append(frm.getInputItem("hicfa7State"));
+        ins.append(frm.getInputItem("hicfa7Zip"));
+        ins.append(frm.getInputItem("hicfa7Phone"));
+        ins.append(frm.getInputItem("hicfa7Sex"));
+        ins.append(frm.getInputItem("hicfa7dob"));
+        ins.append(frm.getInputItem("hicfaBox19"));
+        ins.append(frm.getInputItem("hicfaassignment"));
+        ins.append(htmTb.endTable());
+        ins.append("</div>");
+        ins.append("</div>");
+
+//        ins.append(frm.updateButton());
+//        ins.append(frm.deleteButton());
+        ins.append(frm.button("save", "class=\"button\" onClick=\"saveInsuranceInformation()\""));
+        ins.append(frm.button("cancel", "class=\"button\" onClick=\"closeInsuranceBubble();\""));
+        ins.append(frm.showHiddenFields());
+
+        ins.append(frm.endForm());
+
+        return ins.toString();
+    }
+
     public String getInputForm(String newId) throws Exception {
         setId(Integer.parseInt(newId));
         return getInputForm();
@@ -209,53 +295,74 @@ public class PatientInsurance extends RWResultSet {
         setId(newId);
         return getInputForm();
     }
-    
-    public String getPatientInsuranceList(int patientId) throws Exception {
-        rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
-        ins.delete(0, ins.length());
-        ins.append(htmTb.startTable("545", "0"));
-        String onClickLocationA = "onClick=window.open(\"patientinsurance_d.jsp?id=";
-        String onClickLocationB = "\",\"Insurance\",\"width=500,height=600,left=50,top=80,toolbar=0,status=0,\"); ";
-        String linkClass = " style=\"cursor: pointer; color: #030089;\"";
 
-        ins.append(htmTb.roundedTop(5,"","#030089","insurancedivision"));
-
-        // Display the heading
-        ins.append(htmTb.startRow("style=\"cursor: pointer\" " + onClickLocationA + "0&patientId=" + patientId + onClickLocationB));
-        ins.append(htmTb.headingCell("", htmTb.LEFT, "width=5%"));
-        ins.append(htmTb.headingCell("Payer", htmTb.LEFT, "width=35%"));
-        ins.append(htmTb.headingCell("Phone", htmTb.LEFT, "width=20%"));
-        ins.append(htmTb.headingCell("Insured's Id", htmTb.LEFT, "width=20%"));
-        ins.append(htmTb.headingCell("Group Number", htmTb.LEFT, "width=20%"));
-//        ins.append(htmTb.headingCell("Relationship", htmTb.LEFT, "10%"));
-        ins.append(htmTb.endRow());
-    //  End the table for the Insurance heading
-        ins.append(htmTb.endTable());
-
-    // Start a division for the details section
-        ins.append("<div style=\"width: 545; height: 44;  overflow: auto; text-align: left;\">\n");
-
-    // List the symptoms
-        ins.append(htmTb.startTable("545", "0"));
-
-        while(next()) {
-            String link = onClickLocationA + getString("id") + onClickLocationB;
-            ins.append(htmTb.startRow());
-            String primary="";
-            if(getInt("primaryprovider")==1) { primary="*"; }
-            ins.append(htmTb.addCell(primary, htmTb.CENTER, link + linkClass + " width=5%", ""));
-            ins.append(htmTb.addCell(getString("name"), htmTb.LEFT, link + linkClass + " width=35%", ""));
-            ins.append(htmTb.addCell(Format.formatPhone(getString("phonenumber")), htmTb.LEFT, link + linkClass + " width=20%", ""));
-            ins.append(htmTb.addCell(getString("providernumber"), htmTb.LEFT, "width=20%", ""));
-            ins.append(htmTb.addCell(getString("providergroup"), htmTb.LEFT, "width=20%", ""));
-//            ins.append(htmTb.addCell(getString("relationship"), htmTb.LEFT, "width=10%"));
+    public String getPatientInsuranceList(int patientId) {
+        try {
+            rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+            ins.delete(0, ins.length());
+            ins.append(htmTb.startTable("545", "0"));
+            String onClickLocationA = "onClick=window.open(\"patientinsurance_d.jsp?id=";
+            String onClickLocationB = "\",\"Insurance\",\"width=500,height=600,left=50,top=80,toolbar=0,status=0,\"); ";
+            String linkClass = " style=\"cursor: pointer; color: #030089;\"";
+            ins.append(htmTb.roundedTop(5, "", "#030089", "insurancedivision"));
+            // Display the heading
+            ins.append(htmTb.startRow("style=\"cursor: pointer\" " + onClickLocationA + "0&patientId=" + patientId + onClickLocationB));
+            ins.append(htmTb.headingCell("", htmTb.LEFT, "width=5%"));
+            ins.append(htmTb.headingCell("Payer", htmTb.LEFT, "width=35%"));
+            ins.append(htmTb.headingCell("Phone", htmTb.LEFT, "width=20%"));
+            ins.append(htmTb.headingCell("Insured's Id", htmTb.LEFT, "width=20%"));
+            ins.append(htmTb.headingCell("Group Number", htmTb.LEFT, "width=20%"));
+            //        ins.append(htmTb.headingCell("Relationship", htmTb.LEFT, "10%"));
             ins.append(htmTb.endRow());
+            //  End the table for the Insurance heading
+            ins.append(htmTb.endTable());
+            // Start a division for the details section
+            ins.append("<div style=\"width: 545; height: 44;  overflow: auto; text-align: left;\">\n");
+            // List the symptoms
+            ins.append(htmTb.startTable("545", "0"));
+            ins.append(getList(onClickLocationA, onClickLocationB, linkClass));
+            ins.append(htmTb.endTable());
+            // End the division
+            ins.append("</div>\n");
+
+        } catch (Exception ex) {
+            Logger.getLogger(PatientInsurance.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ins.append(htmTb.endTable());
-    // End the division
-        ins.append("</div>\n");
-        
+
         return ins.toString();
+    }
+    
+    public String getPatientInsuranceList(int patientId, String onClickLocationA, String onClickLocationB, String linkClass) throws Exception {
+        StringBuffer piList = new StringBuffer();
+        rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+        piList.append(htmTb.startTable("100%","0"));
+        piList.append(getList(onClickLocationA, onClickLocationB, linkClass));
+        piList.append(htmTb.endTable());
+        return piList.toString();
+    }
+
+    public String getList(String onClickLocationA, String onClickLocationB, String linkClass) {
+        StringBuffer insList = new StringBuffer();
+        try {
+            while (next()) {
+                String link = onClickLocationA + getString("id") + onClickLocationB;
+                insList.append(htmTb.startRow());
+                String primary = "";
+                if (getInt("primaryprovider") == 1) {
+                    primary = "*";
+                }
+                insList.append(htmTb.addCell(primary, htmTb.CENTER, link + linkClass + " width=5%", ""));
+                insList.append(htmTb.addCell(getString("name"), htmTb.LEFT, link + linkClass + " width=35%", ""));
+                insList.append(htmTb.addCell(Format.formatPhone(getString("phonenumber")), htmTb.LEFT, link + linkClass + " width=20%", ""));
+                insList.append(htmTb.addCell(getString("providernumber"), htmTb.LEFT, "width=20%", ""));
+                insList.append(htmTb.addCell(getString("providergroup"), htmTb.LEFT, "width=20%", ""));
+                //            ins.append(htmTb.addCell(getString("relationship"), htmTb.LEFT, "width=10%"));
+                insList.append(htmTb.endRow());
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PatientInsurance.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return insList.toString();
     }
 
     public String getHicfa4() {

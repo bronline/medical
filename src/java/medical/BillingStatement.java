@@ -239,7 +239,7 @@ public class BillingStatement {
            headings.append(htmTb.addCell("Statement", htmTb.CENTER, "colspan=3 class=headingItem style=\"height: 30px; font-size: 18;\""));
            headings.append(htmTb.endRow());
            headings.append(htmTb.startRow());
-           headings.append(htmTb.addCell(envRs.getString("supplier"), "width=300 class=headingItem"));
+           headings.append(htmTb.addCell(envRs.getString("suppliername"), "width=300 class=headingItem"));
            headings.append(htmTb.addCell("Date:", "class=\"headingLabel\" width=\"150\""));
            headings.append(htmTb.addCell(Format.formatDate(statementDate, "MM/dd/yyyy"), "width=\"150\" class=\"headingItem\""));
            headings.append(htmTb.endRow());

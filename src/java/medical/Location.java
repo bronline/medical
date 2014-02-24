@@ -16,7 +16,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class Location extends RWResultSet {
+public class Location extends MedicalResultSet {
     RWConnMgr io;
     private int id                  = 0;
     private String description;

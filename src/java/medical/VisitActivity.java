@@ -22,7 +22,7 @@ import medical.utiils.InfoBubble;
  *
  * @author adepoti
  */
-public class VisitActivity extends RWResultSet
+public class VisitActivity extends MedicalResultSet
 {
     private int visitId = 0;
     private int patientId = 0;

@@ -92,7 +92,7 @@ $(document).ready(function() {
     <div id="openCloseIdentifier"></div>
     <div id="topSlider">
         <div id="topSliderContent">
-            Isn't this nice?
+            
         </div>
         <div id="openCloseTabWrapper"></div>
         <div id="openCloseTab"></div>

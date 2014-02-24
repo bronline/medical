@@ -96,7 +96,7 @@ $(document).ready(function() {
     <div id="leftCloseId"></div>
     <div id="leftSlider">
         <div id="leftSliderContent">
-            left content
+            
         </div>
         <div id="leftOpenCloseWrapper"></div>
         <div id="leftOpenCloseTab"></div>

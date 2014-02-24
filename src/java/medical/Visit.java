@@ -18,7 +18,7 @@ import java.sql.*;
  *
  * @author BR Online Solutions
  */
-public class Visit extends RWResultSet {
+public class Visit extends MedicalResultSet {
     private String id;
     private int appointmentId=0;
     private int patientId=0; 

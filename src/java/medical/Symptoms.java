@@ -17,7 +17,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class Symptoms extends RWResultSet {
+public class Symptoms extends MedicalResultSet {
     private StringBuffer sy   = new StringBuffer();
     private RWHtmlTable htmTb = new RWHtmlTable();
     private RWInputForm frm   = new RWInputForm();

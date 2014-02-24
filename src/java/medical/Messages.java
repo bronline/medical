@@ -18,7 +18,7 @@ import java.util.Calendar;
  *
  * @author BR Online Solutions
  */
-public class Messages extends RWResultSet {
+public class Messages extends MedicalResultSet {
     private int id;
     private int patientId;
     private String date;

@@ -17,7 +17,7 @@ import tools.*;
  *
  * @author BR Online Solutions
  */
-public class Batch extends RWResultSet {
+public class Batch extends MedicalResultSet {
     RWConnMgr io;
 
     private int id                  = 0;

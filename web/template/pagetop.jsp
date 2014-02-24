@@ -16,7 +16,8 @@
     String content = request.getParameter("content");
     String parm = "";
     StringBuffer parms = new StringBuffer("");
-
+    boolean redirect=false;
+    
     String libraryName="";
     if(databaseName != null) { libraryName=databaseName; }
 
@@ -70,7 +71,7 @@
     <td height=75 colspan=2>
 -->
 <%@ include file="../sliders/topslider.jsp" %>
-<div align="center" style="position: absolute; top: 0; left: 0; z-index: 100; height: 78px; z-index: 100; background-color: #ffffff;">
+<div align="center" style="position: absolute; top: 0; left: 0; z-index: 100; height: 78px; z-index: 100; background-color: #ffffff; width: 100%">
         <div align="left" style="float: left; width: 15%; z-index: 100;"><img src="/medicaldocs/<% out.print(libraryName); %>/images/topleft.JPG" height=75 alt=""></div>
         <div align="center" style="float: left; width: 70%; z-index: 100;"><img src="/medicaldocs/<% out.print(libraryName); %>/images/topcenter.JPG" height=75 alt=""></div>
         <div align="right" style="float: left; width: 15%; z-index: 100;"><img src="/medicaldocs/<% out.print(libraryName); %>/images/topright.JPG" height=75 alt=""></div>

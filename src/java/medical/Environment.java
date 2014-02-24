@@ -17,7 +17,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class Environment extends RWResultSet {
+public class Environment extends MedicalResultSet {
     private RWConnMgr io;
     
     /** Creates a new instance of Environment */

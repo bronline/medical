@@ -17,7 +17,7 @@ import java.sql.*;
  *
  * @author BR Online Solutions
  */
-public class Appointments extends RWResultSet {
+public class Appointments extends MedicalResultSet {
     private RWHtmlTable htmTb = new RWHtmlTable("300", "0");
      
     /** Creates a new instance of Appointments */

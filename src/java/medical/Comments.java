@@ -17,7 +17,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class Comments extends RWResultSet {
+public class Comments extends MedicalResultSet {
     private RWHtmlTable htmTb = new RWHtmlTable("300", "0");
     
     /** Creates a new instance of Comments */

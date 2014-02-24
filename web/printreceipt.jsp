@@ -38,7 +38,13 @@
         Hashtable parentPayments=new Hashtable();
         Hashtable checks=new Hashtable();
 
-        String selectionQuery = "select payments.id, date as paymentdate, date, ifnull(name, 'Cash') as name, checknumber, amount, chargeid, provider, parentpayment, originalamount, patientid from payments left join providers on providers.id=payments.provider" + selectedPayments;
+        String selectionQuery = "select payments.id, payments.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, " +
+                                "checknumber, amount, chargeid, provider, parentpayment, originalamount, payments.patientid " +
+                                "from payments " +
+                                "left join charges on charges.id=chargeid " +
+                                "left join visits on visits.id=charges.visitid " +
+                                "left join providers on providers.id=payments.provider" +
+                                selectedPayments;
 
         ResultSet patientRs=io.opnRS("select * from soapnoteheader where id=" + patient.getId());
         ResultSet envRs = io.opnRS("select * from environment");
@@ -46,7 +52,7 @@
         patientRs.next() ;
 
         // Run the query for the payment to see if the payment is part of an unapplied payment or check
-        ResultSet selectionRs=io.opnRS(selectionQuery + " order by date");
+        ResultSet selectionRs=io.opnRS(selectionQuery + " order by payments.date, visits.date");
 
         while(selectionRs.next()) {
             unappliedPayment=false;
@@ -55,20 +61,28 @@
             if(!checks.containsKey(selectionRs.getString("checknumber")) && !parentPayments.containsKey(selectionRs.getString("id"))) {
                 ResultSet paymentRs=io.opnRS(selectionQuery + " and payments.id=" + selectionRs.getString("payments.id"));
                 if(!selectionRs.getString("checknumber").equals("") && selectionRs.getInt("chargeId") != 0 && selectionRs.getInt("parentPayment") == 0) {
-                   balanceQuery = "select payments.id, date as paymentdate, date, ifnull(name, 'Cash') as name, checknumber, amount, chargeid, provider, parentpayment from payments " +
+                   balanceQuery = "select payments.id, payments.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, " +
+                                  "checknumber, amount, chargeid, provider, parentpayment " +
+                                  "from payments " +
+                                  "left join charges on charges.id=chargeid " +
+                                  "left join visits on visits.id=charges.visitid " +
                                   "left join providers on providers.id=payments.provider " +
                                   "where provider=" + selectionRs.getString("provider") +
                                   " and checknumber='" + selectionRs.getString("checknumber") + "' " +
-                                  "and patientid=" + selectionRs.getString("patientid");
+                                  "and payments.patientid=" + selectionRs.getString("patientid") + " order by payments.date, visits.date";
                    paymentRs=io.opnRS(balanceQuery);
                    checks.put(selectionRs.getString("checknumber"), selectionRs.getString("id"));
 
                 } else if(selectionRs.getInt("parentpayment") != 0) {
 
-                   balanceQuery = "select payments.id, parent.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, payments.checknumber, payments.amount, payments.chargeid, payments.provider, payments.parentpayment from payments " +
+                   balanceQuery = "select payments.id, parent.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, " +
+                                  "payments.checknumber, payments.amount, payments.chargeid, payments.provider, payments.parentpayment " +
+                                  "from payments " +
+                                  "left join charges on charges.id=chargeid " +
+                                  "left join visits on visits.id=charges.visitid " +
                                   "left join providers on providers.id=payments.provider " +
-"left join payments parent ON parent.id=payments.parentpayment " +
-                                  "where payments.parentpayment=" + selectionRs.getString("parentpayment");
+                                  "left join payments parent ON parent.id=payments.parentpayment " +
+                                  "where payments.parentpayment=" + selectionRs.getString("parentpayment") + "order by parent.paymentdate, visits.date";
 /*
                    balanceQuery = "select p.id, p.date, parent.date as paymentdate, " +
                              "ifnull(name, 'Cash') as name, p.checknumber, p.amount, " +
@@ -101,7 +115,7 @@
                              "from payments p " +
                              "left join providers on providers.id=p.provider " +
                              "left join payments parent ON parent.id=p.parentpayment " +
-                             "where p.parentpayment="+ selectionRs.getString("id");
+                             "where p.parentpayment="+ selectionRs.getString("id") + " order by parent.date";
 
                    unappliedPayment=true;
                    unappliedAmount=selectionRs.getDouble("originalamount");
@@ -325,7 +339,7 @@
     public String getSelectedPayments(HttpServletRequest request, int patientId) {
         StringBuffer si=new StringBuffer();
         boolean selectedItemFound=false;
-        si.append(" where patientid=" + patientId);
+        si.append(" where payments.patientid=" + patientId);
         for(Enumeration e=request.getParameterNames(); e.hasMoreElements();) {
             String field=(String)e.nextElement();
             if(field.substring(0,3).equals("chk")) {
@@ -345,7 +359,7 @@
         double balance=0.0;
         double chargeAmount=0.0;
 
-        ResultSet lRs=io.opnRS("select * from charges left join visits on charges.visitid=visits.id left join items on charges.itemid=items.id where charges.id=" + chargeId);
+        ResultSet lRs=io.opnRS("select * from charges left join visits on charges.visitid=visits.id left join items on charges.itemid=items.id where charges.id=" + chargeId + " order by visits.date");
         while(lRs.next()) {
             chargeAmount=lRs.getDouble("quantity")*lRs.getDouble("chargeamount");
             balance=chargeAmount-paymentAmount;

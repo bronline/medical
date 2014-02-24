@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat;
  *
  * @author BR Online Solutions
  */
-public class Charge extends RWResultSet {
+public class Charge extends MedicalResultSet {
     private String id;
     private int resourceId = 0;
     private int visitId = 0;

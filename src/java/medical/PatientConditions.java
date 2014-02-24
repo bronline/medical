@@ -10,14 +10,13 @@ import java.sql.ResultSet;
 import tools.RWConnMgr;
 import tools.RWHtmlTable;
 import tools.RWInputForm;
-import tools.RWResultSet;
 import tools.utils.Format;
 
 /**
  *
  * @author Randy
  */
-public class PatientConditions extends RWResultSet {
+public class PatientConditions extends MedicalResultSet {
     private int id;
     private int patientId;
     private int conditionType;

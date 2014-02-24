@@ -111,6 +111,7 @@
 <body onLoad="loadMask()">
 
 <%
+    if(!redirect) {
     String id       = request.getParameter("id");
 
     if(patient != null) {
@@ -135,6 +136,7 @@
         session.setAttribute("returnUrl", "patientmaint.jsp");
         session.setAttribute("parentLocation", "patientmaint.jsp");
         session.setAttribute("myParent", "patientmaint.jsp");
+    }
     }
 %>
 

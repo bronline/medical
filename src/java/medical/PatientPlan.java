@@ -17,7 +17,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class PatientPlan extends RWResultSet {
+public class PatientPlan extends MedicalResultSet {
     private RWHtmlTable htmTb           = new RWHtmlTable("400", "0");
     private int planId                  = 0;
     private int patientId               = 0;

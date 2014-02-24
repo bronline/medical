@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import javax.servlet.http.HttpServletRequest;
 import tools.RWConnMgr;
 import tools.RWInputForm;
-import tools.RWResultSet;
 import tools.utils.Format;
 import javax.servlet.jsp.JspWriter;
 import tools.RWHtmlTable;
@@ -21,7 +20,7 @@ import tools.RWHtmlTable;
  *
  * @author rwandell
  */
-public class PatientVitals extends RWResultSet {
+public class PatientVitals extends MedicalResultSet {
     private int id=0;
     private int patientId = 0;
     private String date = "0001-01-01";

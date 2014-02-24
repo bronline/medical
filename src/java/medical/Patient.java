@@ -21,7 +21,7 @@ import medical.utiils.InfoBubble;
  *
  * @author BR Online Solutions
  */
-public class Patient extends RWResultSet {
+public class Patient extends MedicalResultSet {
 
     private String id;
     private boolean updatable   = false;

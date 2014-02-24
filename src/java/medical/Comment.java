@@ -19,7 +19,7 @@ import java.util.Calendar;
  *
  * @author rwandell
  */
-public class Comment extends RWResultSet {
+public class Comment extends MedicalResultSet {
     private String id;
     private int patientId = 0;
     private int visitId = 0;

@@ -16,7 +16,7 @@ import java.sql.*;
  *
  * @author BR Online Solutions
  */
-public class TabMenu extends RWResultSet {
+public class TabMenu extends MedicalResultSet {
     RWConnMgr io;
     private int numTabs;
     private int id = 0;

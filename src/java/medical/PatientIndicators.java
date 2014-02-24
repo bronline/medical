@@ -18,7 +18,7 @@ import java.sql.*;
  *
  * @author rwandell
  */
-public class PatientIndicators extends RWResultSet{
+public class PatientIndicators extends MedicalResultSet{
     private String patientId;
     private ResultSet cRs;
     private RWHtmlTable htmTb = new RWHtmlTable("245"); 

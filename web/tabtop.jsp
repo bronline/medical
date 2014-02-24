@@ -20,7 +20,7 @@
         RWHtmlTable ttHtmTb = new RWHtmlTable("800", "0");
         String srchString="*EMPTY";
         int numberOfTabs = 0;
-        boolean redirect=false;
+//        boolean redirect=false;
 
         String srchPatientId="";
         String jsp = self.substring(self.lastIndexOf("/")+1);
@@ -56,7 +56,7 @@
                     redirect=true;
                 }
                 if (tabMenu.next() && !tabMenu.getSelfRedirect() && redirect) {
-                    response.sendRedirect(self);
+//                    response.sendRedirect(self);
                 }
             }
             tabMenu.beforeFirst();

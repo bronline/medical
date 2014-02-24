@@ -19,7 +19,7 @@ import tools.*;
  *
  * @author BR Online Solutions
  */
-public class Payment extends RWResultSet {
+public class Payment extends MedicalResultSet {
     RWConnMgr io;
     ResultSet childRs;
     
