@@ -1,4 +1,4 @@
-<%@ page import="medical.*, medical.utiils.InfoBubble, tools.*, tools.print.*, tools.utils.*, java.sql.*, java.util.*, java.math.* " %>
+<%@ page import="medical.*, medical.utiils.InfoBubble, medical.utiils.PDF, tools.*, tools.print.*, tools.utils.*, java.sql.*, java.util.*, java.math.* " %>
 <link rel="stylesheet" type="text/css" href="css/stylesheet.css" title="stylesheet">
 <script type="text/javascript" src="js/date-picker.js"></script>
 <script type="text/javascript" src="js/CheckDate.js"></script>

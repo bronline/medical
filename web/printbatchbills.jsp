@@ -46,6 +46,7 @@ function win(where,close){
     String pdfFileName="";
     String textFileName="";
     String str="";
+    String backgroundImage="C:\\Inetpub\\vhosts\\chiropracticeonline.net\\httpdocs\\medicaldocs\\";
     com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.LETTER, 100, 0, 50, 50);
     com.lowagie.text.pdf.PdfWriter writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(documentRoot + "\\sample.pdf"));
 //    com.lowagie.text.pdf.PdfWriter writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(billingEnv.getString("documentpath") + "\\sample.pdf"));
@@ -120,6 +121,7 @@ function win(where,close){
             document = new com.lowagie.text.Document(com.lowagie.text.PageSize.LETTER, 100, 0, 50, 50);
             writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(str + ".pdf"));
             document.open();
+            backgroundImage += thisBatch.getDocumentMap() + ".jpg";
             pdfOpen=true;
         }
 
@@ -185,6 +187,7 @@ function win(where,close){
     out.print("<body>");
     if(pdfOpen) {
         document.close();
+        PDF.applyBackgroundImage(str + ".pfd", str + "I.pdf" , backgroundImage );
         out.print("<script type=\"text/javascript\">window.open(\"" + httpRoot +  pdfFileName + ".pdf\",\"PDF\")</script>");
 //        out.print("<script type=\"text/javascript\">window.open(\"" + billingEnv.getBrowserPath() +  pdfFileName + ".pdf\",\"PDF\")</script>");
     }

@@ -30,7 +30,7 @@
         StringBuffer sy = new StringBuffer();
 
        // Get an input item with the record ID to set the rcd and ID fields
-        out.print("<v:roundrect style='width: 600; height: 215; text-valign: middle; text-align: center;'>");
+        out.print("<v:roundrect style='width: 600; height: 255; text-valign: middle; text-align: center;'>");
 
 //       ResultSet symptomRs=io.opnRS("select * from patientsymptoms where patientId=" + patientId + " order by `sequence`");
 
@@ -64,7 +64,7 @@
 
         int sequenceNumber=symptomCount+1;
 
-        for(int x=symptomCount;x<10;x++) {
+        for(int x=symptomCount;x<12;x++) {
             sy.append(htmTb.startRow());
             sy.append(htmTb.addCell("<b>Seq</b>"));
             sy.append(htmTb.addCell(frm.textBox(""+(sequenceNumber), "new_sequence"+symptomCount, "size=5 maxlength=5 class=tBoxText style='text-align: right;' id=new_sequence"+symptomCount)));

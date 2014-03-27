@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 public class TestPdf {
 
     public static void main (String [] args) throws DocumentException {
-        PDF.applyBackgroundImage("c:\\20121127.pdf", "c:\\text1.pdf", "C:\\chiro\\medical\\web\\images\\Scan_Pic0003A.jpg");
+        PDF.applyBackgroundImage("C:\\Inetpub\\vhosts\\chiropracticeonline.net\\httpdocs\\medicaldocs\\katchley\\ACA1500PDF\\20140311.pdf", "c:\\ACA1500PDF.pdf", "C:\\chiro\\medical\\web\\images\\Scan_Pic0003.jpg");
         /*
         try {
             PdfReader reader = new PdfReader("c:\\20121127.pdf");

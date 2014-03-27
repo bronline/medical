@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import tools.RWConnMgr;
 import tools.document.Document;
 import tools.print.FilePrinter;
@@ -606,7 +608,9 @@ public class CMS1500 extends Document {
         ResultSet lRs=lPs.executeQuery();
         
         int currentCode=1;
-        while(lRs.next() && currentCode<5) {
+        int maxCode = 5;
+        if(isACAForm()) { maxCode = 13; }
+        while(lRs.next() && currentCode<maxCode) {
             String code=lRs.getString("code");
             String subCode="";
             
@@ -615,9 +619,13 @@ public class CMS1500 extends Document {
                 code=code.substring(0, code.indexOf("."));
             } catch (Exception subCodeException) {
             }
-            
-            setDocumentFieldValue("21_" + currentCode + "a", code);
-            setDocumentFieldValue("21_" + currentCode + "b", subCode);
+
+            if(maxCode==13) {
+                setDocumentFieldValue("21_" + currentCode + "a", lRs.getString("code"));
+            } else {
+                setDocumentFieldValue("21_" + currentCode + "a", code);
+                setDocumentFieldValue("21_" + currentCode + "b", subCode);
+            }
             
             diagnosisCodes.put(lRs.getString("code"), ""+currentCode);
             currentCode ++;
@@ -1509,7 +1517,8 @@ public class CMS1500 extends Document {
     private void buildTemporaryChargesTable() throws SQLException {
         String queryString="insert into tempbillingcharges " +
                 "select null, batchid, chargeid, patientid, resourceid, month, day, year, placeofservice, typeofservice, " +
-                "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid " +
+                "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid, " +
+                "box24unusual " +
                 "from cms1500charges " +
                 "where billinsurance<>1 and chargeId > " + lastChargeId + " and patientid=" + patientId +
                 " and batchid=" + batchId + " and resourceid=" + resourceId +
@@ -1520,7 +1529,8 @@ public class CMS1500 extends Document {
         if(allowMultipleDatesPerPage) {
             queryString = "insert into tempbillingcharges " +
                 "select null, batchid, chargeid, patientid, resourceid, month, day, year, placeofservice, typeofservice, " +
-                "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid " +
+                "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid, " +
+                "box24unusual " +
                 "from cms1500charges " +
                 "where billinsurance<>1 and chargeId > " + lastChargeId + " and patientid=" + patientId +
                 " and batchid=" + batchId + " and resourceid=" + resourceId +
@@ -1549,5 +1559,18 @@ public class CMS1500 extends Document {
      */
     public void setFileLocationSet(boolean fileLocationSet) {
         this.fileLocationSet = fileLocationSet;
+    }
+
+    public boolean isACAForm() {
+        boolean acaForm = false;
+        try {
+            ResultSet acaFormRs = io.opnRS("select distinct document, ACAForm from rwcatalog.documentmap where document='" + getMapDocument() + "'");
+            if(acaFormRs.next()) { acaForm = acaFormRs.getBoolean("ACAForm"); }
+            acaFormRs.close();
+            acaFormRs=null;
+        } catch (Exception ex) {
+            Logger.getLogger(CMS1500.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return acaForm;
     }
 }
