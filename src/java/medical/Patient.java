@@ -1950,7 +1950,7 @@ public class Patient extends MedicalResultSet {
     public boolean hasInsurance() {
         boolean i = false;
         try {
-            ResultSet pRs = io.opnRS("SELECT * FROM patientinsurance where active and patientid=" + this.id);
+            ResultSet pRs = io.opnRS("SELECT * FROM patientinsurance where active and not ispip and patientid=" + this.id);
             i=pRs.next();
             pRs.close();
             pRs=null;

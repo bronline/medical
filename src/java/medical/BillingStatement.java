@@ -72,9 +72,9 @@ public class BillingStatement {
         totalPatientAdjustments=0.0;
         totalUnappliedPayments=0.0;
 
-        if(printOption != null && (printOption.equals("A") || printOption.equals("L"))) { printAllItems=true; }
+        if(printOption != null && (printOption.equals("A") || printOption.equals("L"))) { printAllItems=true; selectedCharges=getSelectedCharges(io, this.patient.getId(), true); }
         if(printOption != null && printOption.equals("S")) { selectedCharges=getSelectedCharges(request); }
-        if(printOption != null && printOption.equals("O")) { selectedCharges=getSelectedCharges(io, this.patient.getId()); }
+        if(printOption != null && printOption.equals("O")) { selectedCharges=getSelectedCharges(io, this.patient.getId(), false); }
         if(request.getParameter("statements") != null) { selectedCharges=getSelectedCharges(io, this.patient.getId(), minDays, maxDays); }
         if(complete != null && !complete.equals("C") || printOption.equals("S")) { completedTransactions = ""; }
 
@@ -82,7 +82,8 @@ public class BillingStatement {
 //        patCmtPs = io.getConnection().prepareStatement("insert into comments (patientid, visitid, `date`, `comment`, `type`, appointmentid) values (?, ?, ?, ?, ?, ?)");
         patChkCmtPs = io.getConnection().prepareStatement("select * from comments where patientid=? and `date`=? and `type`=?");
 
-        String chargesQuery = "SELECT visitid, COUNT(*) AS ItemCount, SUM(chargeamount*quantity) AS ItemCharges " +
+        String chargesQuery = "SELECT visitid, sum(ItemCount) as ItemCount, sum(ItemCharges) AS ItemCharges FROM (" +
+                "SELECT visitid, COUNT(*) AS ItemCount, SUM(chargeamount*quantity) AS ItemCharges " +
                 "FROM charges " +
                 "LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges " + completedTransactions + ") bc ON bc.chargeid=charges.id " +
                 "WHERE bc.chargeid IS NOT NULL " +
@@ -91,11 +92,12 @@ public class BillingStatement {
                 "SELECT visitid, COUNT(*) AS ItemCount, SUM(chargeamount*quantity) AS ItemCharges " +
                 "FROM charges LEFT JOIN items i ON i.id=charges.itemid " +
                 "WHERE NOT i.billinsurance " +
+                "GROUP BY visitid) chargesQuery " +
                 "GROUP BY visitid";
 
         if(this.patient.getId() != 0) {
 
-            if(printOption != null && printOption.equals("S") && !selectedCharges.equals("")) { specificChargeQry = " AND aa.id IN (select distinct visitid from charges where id in" + selectedCharges + ") "; }
+            if(printOption != null && (printOption.equals("A") || printOption.equals("S")) && !selectedCharges.equals("")) { specificChargeQry = " AND aa.id IN (select distinct visitid from charges where id in" + selectedCharges + ") "; }
 
             String balanceQuery = "select aa.id as visitId, aa.`Date`, IFNULL(cc.`Type`,'Office Visit') AS `Type`, ItemCount, " +
                 "IFNULL(ItemCharges,0) AS ItemCharges, IFNULL(InsPayments,0) AS InsPayments, IFNULL(PatPayments,0) AS PatPayments, " +
@@ -109,11 +111,11 @@ public class BillingStatement {
                 "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS WriteOffs FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id=10 GROUP BY v.id) AS wo ON wo.visitid=aa.id " +
                 "WHERE aa.patientid=" + this.patient.getId();
             
-            if(printOption != null && !printOption.equals("S")) { balanceQuery += " AND (IFNULL(ItemCharges,0)-IFNULL(inspayments,0)-IFNULL(patpayments,0)-IFNULL(adjustments,0)-IFNULL(writeoffs,0))>0 "; }
+            if(printOption != null && printOption.equals("S")) { balanceQuery += " AND (IFNULL(ItemCharges,0)-IFNULL(inspayments,0)-IFNULL(patpayments,0)-IFNULL(adjustments,0)-IFNULL(writeoffs,0))>0 "; }
             balanceQuery += specificChargeQry +
                 " ORDER BY aa.`date` DESC";
 
-           if(this.patient.hasInsurance() && !printOption.equals("S")) {
+           if(this.patient.hasInsurance() && printOption.equals("S")) {
                balanceQuery = "select aa.id as visitId, aa.`Date`, IFNULL(cc.`Type`,'Office Visit') AS `Type`, ItemCount, " +
                        "IFNULL(ItemCharges,0) AS ItemCharges, IFNULL(InsPayments,0) AS InsPayments, IFNULL(PatPayments,0) AS PatPayments, " +
                        "IFNULL(Adjustments,0) AS Adjustments, IFNULL(WriteOffs,0) AS WriteOffs, " +
@@ -177,7 +179,7 @@ public class BillingStatement {
                        out.print(htmTb.addCell(tools.utils.Format.formatCurrency(openItemRs.getString("writeoffs")), htmTb.RIGHT, "class=openItem"));
                        out.print(htmTb.addCell(tools.utils.Format.formatCurrency(openItemRs.getString("balance")), htmTb.RIGHT, "class=openItem"));
                        out.print(htmTb.endRow());
-                       if(printOption.equals("O") || printOption.equals("S")) { out.print(getVisitDetails(io, htmTb, openItemRs.getInt("visitid"), currentLine, printOption, today)); }
+                       if(printOption.equals("O") || printOption.equals("S") || printAllItems) { out.print(getVisitDetails(io, htmTb, openItemRs.getInt("visitid"), currentLine, printOption, today)); }
 
                        totalPayorPayments += openItemRs.getDouble("inspayments");
                        totalPatientPayments += openItemRs.getDouble("patpayments");
@@ -596,10 +598,12 @@ public class BillingStatement {
         return si.toString();
     }
 
-    public String getSelectedCharges(RWConnMgr io, int patientId) {
+    public String getSelectedCharges(RWConnMgr io, int patientId, boolean printAll) {
         StringBuffer si = new StringBuffer();
         String ct = "bc.chargeid is not null and ";
         String pt = "";
+
+        if(printAll) { ct=""; }
 
         try {
         String chargeQuery = "SELECT DISTINCT vs.id, bc.chargeid " +
