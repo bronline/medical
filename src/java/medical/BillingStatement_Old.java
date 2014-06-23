@@ -21,10 +21,10 @@ import tools.utils.Format;
  *
  * @author rwandell
  */
-public class BillingStatement {
+public class BillingStatement_Old {
 
     private  PrintWriter out;
-    public int linesPerPage = 90;
+    public int linesPerPage = 55;
     public int currentLine=1;
     public int currPage=1;
     public String printOption;
@@ -48,7 +48,7 @@ public class BillingStatement {
 
     private String today = Format.formatDate(new java.util.Date(), "yyyy-MM-dd");
 
-    public BillingStatement() {
+    public BillingStatement_Old() {
 
     }
 
@@ -61,10 +61,9 @@ public class BillingStatement {
         String maxDays = request.getParameter("maxDays");
         selectedCharges = "";
         String specificChargeQry = "";
-        linesPerPage = 90;
+
         boolean printAllItems = false;
         htmTb.replaceNewLineChar(false);
-        boolean billedOnly = false;
 
         totalCharges=0.0;
         totalPayorPayments=0.0;
@@ -73,13 +72,8 @@ public class BillingStatement {
         totalPatientAdjustments=0.0;
         totalUnappliedPayments=0.0;
 
-        // S = Selected Charges
-        // O = Open Items only
-        // A = All Charge History
-        // L = Charge Ledger
-
         if(printOption != null && (printOption.equals("A") || printOption.equals("L"))) { printAllItems=true; selectedCharges=getSelectedCharges(io, this.patient.getId(), true); }
-        if(printOption != null && printOption.equals("S")) { selectedCharges=getSelectedCharges(io, request); }
+        if(printOption != null && printOption.equals("S")) { selectedCharges=getSelectedCharges(request); }
         if(printOption != null && printOption.equals("O")) { selectedCharges=getSelectedCharges(io, this.patient.getId(), false); }
         if(request.getParameter("statements") != null) { selectedCharges=getSelectedCharges(io, this.patient.getId(), minDays, maxDays); }
         if(complete != null && !complete.equals("C") || printOption.equals("S")) { completedTransactions = ""; }
@@ -88,16 +82,18 @@ public class BillingStatement {
 //        patCmtPs = io.getConnection().prepareStatement("insert into comments (patientid, visitid, `date`, `comment`, `type`, appointmentid) values (?, ?, ?, ?, ?, ?)");
         patChkCmtPs = io.getConnection().prepareStatement("select * from comments where patientid=? and `date`=? and `type`=?");
 
-        String chargesQuery = "SELECT visitid, ItemCount, ItemCharges FROM (" +
-                "SELECT visits.Id as visitid, COUNT(*) AS ItemCount, SUM(charges.chargeamount*charges.quantity) AS ItemCharges " +
-                "FROM visits " +
-                "LEFT JOIN charges ON charges.visitid=visits.id " +
-                "LEFT JOIN items ON items.Id=charges.itemid ";
-                if(billedOnly) { chargesQuery += "LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges) bc ON bc.chargeid=charges.id "; }
-                chargesQuery += "WHERE ";
-                if(billedOnly) { chargesQuery += "((bc.chargeid IS NOT NULL AND items.billinsurance) OR (bc.chargeid IS NULL AND NOT items.billinsurance)) AND "; }
-                chargesQuery += "visits.patientid=" + this.patient.getId() + " " +
-                "GROUP BY visits.Id) chargesQuery";
+        String chargesQuery = "SELECT visitid, sum(ItemCount) as ItemCount, sum(ItemCharges) AS ItemCharges FROM (" +
+                "SELECT visitid, COUNT(*) AS ItemCount, SUM(chargeamount*quantity) AS ItemCharges " +
+                "FROM charges " +
+                "LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges " + completedTransactions + ") bc ON bc.chargeid=charges.id " +
+                "WHERE bc.chargeid IS NOT NULL " +
+                "GROUP BY visitid " +
+                "UNION " +
+                "SELECT visitid, COUNT(*) AS ItemCount, SUM(chargeamount*quantity) AS ItemCharges " +
+                "FROM charges LEFT JOIN items i ON i.id=charges.itemid " +
+                "WHERE NOT i.billinsurance " +
+                "GROUP BY visitid) chargesQuery " +
+                "GROUP BY visitid";
 
         if(this.patient.getId() != 0) {
 
@@ -114,8 +110,8 @@ public class BillingStatement {
                 "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS Adjustments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id<>10 AND pp.isadjustment GROUP BY v.id) AS adj ON adj.visitid=aa.id " +
                 "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS WriteOffs FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id=10 GROUP BY v.id) AS wo ON wo.visitid=aa.id " +
                 "WHERE aa.patientid=" + this.patient.getId();
-            
-            if((printOption != null && !printOption.equals("A") && !printOption.equals("S")) || request.getParameter("statements") != null) { balanceQuery += " AND (IFNULL(ItemCharges,0)-IFNULL(inspayments,0)-IFNULL(patpayments,0)-IFNULL(adjustments,0)-IFNULL(writeoffs,0))>0 "; }
+
+            if(printOption != null && printOption.equals("S")) { balanceQuery += " AND (IFNULL(ItemCharges,0)-IFNULL(inspayments,0)-IFNULL(patpayments,0)-IFNULL(adjustments,0)-IFNULL(writeoffs,0))>0 "; }
             balanceQuery += specificChargeQry +
                 " ORDER BY aa.`date` DESC";
 
@@ -128,12 +124,12 @@ public class BillingStatement {
                        "left join appointments bb on aa.appointmentid=bb.id " +
                        "left join appointmenttypes cc on bb.type=cc.id " +
                        "LEFT JOIN (" + chargesQuery + ") AS c ON c.visitid=aa.id " +
-                       "LEFT JOIN (SELECT v.id AS visitid, SUM(p.amount) AS Inspayments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN items i ON i.id=c.itemid LEFT JOIN (select distinct chargeid from batchcharges) AS bc ON bc.chargeid=c.id LEFT JOIN visits v ON v.id=c.visitid WHERE NOT pp.reserved AND ((i.billinsurance AND bc.chargeid IS NOT NULL) OR (NOT i.billinsurance AND bc.chargeid is null)) AND v.patientId=" + patient.getId() + " GROUP BY v.id) AS i ON i.visitid=aa.id " +
-                       "LEFT JOIN (SELECT v.id AS visitid, SUM(p.amount) AS PatPayments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN visits v ON v.id=c.visitid WHERE (pp.reserved AND pp.id<>10 AND NOT pp.isadjustment) OR pp.id IS NULL AND v.patientId=" + patient.getId() + " GROUP BY v.id) AS pat ON pat.visitid=aa.id " +
-                       "LEFT JOIN (SELECT v.id AS visitid, SUM(p.amount) AS Adjustments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN items i ON i.id=c.itemid LEFT JOIN (select distinct chargeid from batchcharges) AS bc ON bc.chargeid=c.id  LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id<>10 AND pp.isadjustment AND ((i.billinsurance AND bc.chargeid IS NOT NULL) OR (NOT i.billinsurance AND bc.chargeid is null)) AND v.patientId=" + patient.getId() + " GROUP BY v.id) AS adj ON adj.visitid=aa.id " +
-                       "LEFT JOIN (SELECT v.id AS visitid, SUM(p.amount) AS WriteOffs FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN items i ON i.id=c.itemid LEFT JOIN batchcharges bc ON bc.chargeid=c.id LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id=10 AND ((i.billinsurance AND bc.id IS NOT NULL) OR (NOT i.billinsurance AND bc.id is null)) AND v.patientId=" + patient.getId() + " GROUP BY v.id) AS wo ON wo.visitid=aa.id " +
+                       "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS Inspayments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges) bc ON bc.chargeid=c.id LEFT JOIN visits v ON v.id=c.visitid WHERE NOT pp.reserved AND bc.chargeid IS NOT NULL GROUP BY v.id) AS i ON i.visitid=aa.id " +
+                       "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS PatPayments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges) bc ON bc.chargeid=c.id  LEFT JOIN visits v ON v.id=c.visitid WHERE ((pp.reserved AND pp.id<>10 AND NOT pp.isadjustment) OR pp.id IS NULL) AND bc.chargeid IS NOT NULL GROUP BY v.id) AS pat ON pat.visitid=aa.id " +
+                       "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS Adjustments FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges) bc ON bc.chargeid=c.id  LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id<>10 AND pp.isadjustment AND bc.chargeid IS NOT NULL GROUP BY v.id) AS adj ON adj.visitid=aa.id " +
+                       "LEFT JOIN (SELECT v.id AS visitid, SUM(amount) AS WriteOffs FROM payments p LEFT JOIN providers pp ON p.provider=pp.id LEFT JOIN charges c ON c.id=p.chargeid LEFT JOIN (SELECT DISTINCT chargeid FROM batchcharges) bc ON bc.chargeid=c.id  LEFT JOIN visits v ON v.id=c.visitid WHERE pp.reserved AND pp.id=10 AND bc.chargeid IS NOT NULL GROUP BY v.id) AS wo ON wo.visitid=aa.id " +
                        "WHERE aa.patientid=" + patient.getId() + " ";
-               
+
                if(!printOption.equals("A") && !printOption.equals("S") || request.getParameter("statements") != null) {
                     balanceQuery += " AND (IFNULL(ItemCharges,0)-IFNULL(inspayments,0)-IFNULL(patpayments,0)-IFNULL(adjustments,0)-IFNULL(writeoffs,0))>0 AND ItemCount<>0 ";
                } else {
@@ -183,20 +179,15 @@ public class BillingStatement {
                        out.print(htmTb.addCell(tools.utils.Format.formatCurrency(openItemRs.getString("writeoffs")), htmTb.RIGHT, "class=openItem"));
                        out.print(htmTb.addCell(tools.utils.Format.formatCurrency(openItemRs.getString("balance")), htmTb.RIGHT, "class=openItem"));
                        out.print(htmTb.endRow());
-
-                       currentLine = currentLine + 2;
-                       checkForPageBreak(htmTb, patientRs, envRs, today);
-                       
                        if(printOption.equals("O") || printOption.equals("S") || printAllItems) { out.print(getVisitDetails(io, htmTb, openItemRs.getInt("visitid"), currentLine, printOption, today)); }
 
-                       currentLine = currentLine + 2;
-                       
                        totalPayorPayments += openItemRs.getDouble("inspayments");
                        totalPatientPayments += openItemRs.getDouble("patpayments");
                        totalPayorAdjustments += openItemRs.getDouble("adjustments");
                        totalPatientAdjustments += openItemRs.getDouble("writeoffs");
                        totalCharges += openItemRs.getDouble("itemcharges");
 
+                       checkForPageBreak(htmTb, patientRs, envRs, today);
                    }
                }
 
@@ -237,13 +228,13 @@ public class BillingStatement {
         }
         htmTb = null;
         chgPs = null;
-        
+
         System.gc();
     }
 
     public  String printHeadings(RWHtmlTable htmTb, ResultSet patientRs, ResultSet envRs, String printOption, String statementDate) throws Exception {
        StringBuffer headings = new StringBuffer();
-//       headings.append("<p class=\"page\">&nbsp;&nbsp;</p>");
+       headings.append("<p class=\"page\">&nbsp;&nbsp;</p>");
        if(envRs.getInt("statementheading") == 0) {
            headings.append(htmTb.startTable());
            headings.append(htmTb.startRow());
@@ -426,7 +417,7 @@ public class BillingStatement {
                 out.print(htmTb.addCell(envRs.getString("facilityname"), "class=\"inquiryAddress\""));
                 out.print(htmTb.endRow());
                 out.print(htmTb.startRow());
-                if(addressLines.length>0) {                  
+                if(addressLines.length>0) {
                     out.print(htmTb.addCell(addressLines[0], "class=\"inquiryAddress\""));
                 } else {
                     out.print(htmTb.addCell(""));
@@ -532,7 +523,7 @@ public class BillingStatement {
        return headings.toString();
     }
 
-    public String getSelectedCharges(RWConnMgr io, HttpServletRequest request) throws Exception {
+    public String getSelectedCharges(HttpServletRequest request) {
         StringBuffer si=new StringBuffer();
         boolean selectedItemFound=false;
         for(Enumeration e=request.getParameterNames(); e.hasMoreElements();) {
@@ -545,14 +536,6 @@ public class BillingStatement {
             }
         }
         if(selectedItemFound) { si.append(") "); }
-
-        ResultSet dosRs = io.opnRS("SELECT id FROM charges where visitid in (select distinct visitid from charges where id IN " + si.toString() + ")");
-        si = new StringBuffer();
-        while(dosRs.next()) {
-            if(si.length() == 0) { si.append("("); } else { si.append(","); }
-            si.append(dosRs.getString("id"));
-        }
-        if(si.length()>0) { si.append(") "); }
         return si.toString();
     }
 
@@ -623,16 +606,11 @@ public class BillingStatement {
         if(printAll) { ct=""; }
 
         try {
-        String chargeQuery = "SELECT DISTINCT vs.id, ";
-                if(printAll) {
-                    chargeQuery += "vc.id as chargeid ";
-                } else {
-                    chargeQuery += "bc.chargeid ";
-                }
-                chargeQuery += "FROM visits vs " +
-                "LEFT JOIN charges vc ON vc.visitid=vs.id ";
-                if(patient.hasInsurance() && !printAll) { chargeQuery += "LEFT JOIN batchcharges bc ON bc.chargeid=vc.id "; }
-                chargeQuery += "left join (SELECT patientid, COUNT(*) AS insCount from patientinsurance group by patientid) pi on vs.patientid=pi.patientid " +
+        String chargeQuery = "SELECT DISTINCT vs.id, bc.chargeid " +
+                "FROM visits vs " +
+                "LEFT JOIN charges vc ON vc.visitid=vs.id " +
+                "LEFT JOIN batchcharges bc ON bc.chargeid=vc.id " +
+                "left join (SELECT patientid, COUNT(*) AS insCount from patientinsurance group by patientid) pi on vs.patientid=pi.patientid " +
                 "WHERE " +
                 pt +
                 ct +
@@ -666,6 +644,8 @@ public class BillingStatement {
     }
 
     public String getVisitDetails(RWConnMgr io, RWHtmlTable htmTb, int visitId, int currentLine, String printOption, String statementDate) throws Exception {
+        checkForPageBreak(htmTb, null, null, statementDate);
+
         StringBuffer d = new StringBuffer();
         String visitQuery="SELECT c.id, CONCAT(i.code,' - ', i.description) AS description, c.quantity, c.quantity*c.chargeamount AS chargeamount, " +
                 "IFNULL(Payments,0) AS Payments, (c.Quantity*c.ChargeAmount)-IFNULL(Payments,0) AS Balance, IFNULL(r.name, 'Office') as name, comments  " +
@@ -690,7 +670,6 @@ public class BillingStatement {
         d.append(htmTb.endRow());
 
         currentLine ++;
-        checkForPageBreak(htmTb, null, null, statementDate);
 
         htmTb.setCellVAlign("top");
 
@@ -703,14 +682,11 @@ public class BillingStatement {
             d.append(htmTb.addCell(Format.formatCurrency(chargeRs.getString("balance")), htmTb.RIGHT));
             d.append(htmTb.endRow());
 
-            currentLine ++;
-
             if(chargeRs.getString("comments") != null && !chargeRs.getString("comments").equals("")) {
                 d.append(htmTb.startRow("style=\"background-color: #cccccc;\""));
                 d.append(htmTb.addCell(chargeRs.getString("comments"), "colspan=4"));
                 d.append(htmTb.endRow());
                 currentLine ++;
-                checkForPageBreak(htmTb, null, null, statementDate);
             }
 
             checkForPageBreak(htmTb, null, null, statementDate);
@@ -724,21 +700,16 @@ public class BillingStatement {
         d.append(htmTb.addCell(""));
         d.append(htmTb.endRow());
 
-        currentLine ++;
-        checkForPageBreak(htmTb, null, null, statementDate);
-
         d.append(htmTb.endTable());
 
         d.append(htmTb.endCell());
         d.append(htmTb.endRow());
-
-        currentLine ++;
-        checkForPageBreak(htmTb, null, null, statementDate);
-        
         return d.toString();
     }
 
     public String getPaymentsForCharge(RWConnMgr io, RWHtmlTable htmTb, int chargeId, int currentLine, String statementDate) throws Exception {
+        checkForPageBreak(htmTb, null, null, statementDate);
+
         StringBuffer pc=new StringBuffer();
         boolean paymentsFound = false;
         String paymentQuery="SELECT 0 AS sequence, charges.id, CASE WHEN payments.id IS NULL THEN '' ELSE DATE_FORMAT(payments.`date`,'%m/%d/%y') END AS paymentdate, " +
@@ -748,6 +719,15 @@ public class BillingStatement {
                 "LEFT JOIN payments ON charges.id=payments.chargeid " +
                 "LEFT JOIN items ON items.id=charges.itemid " +
                 "WHERE charges.id=" + chargeId + "  AND payments.provider=0 " +
+//                "UNION " +
+//                "SELECT 0 AS sequence, charges.id, CASE WHEN payments.id IS NULL THEN '' ELSE DATE_FORMAT(payments.`date`,'%m/%d/%y') END AS paymentdate, " +
+//                "CASE WHEN payments.id IS NULL THEN '' ELSE payments.checknumber END AS checknumber, CASE WHEN payments.id IS NULL THEN '' ELSE payments.amount END AS paymentamount, " +
+//                "providers.name " +
+//                "FROM charges " +
+//                "LEFT JOIN payments ON charges.id=payments.chargeid " +
+//                "LEFT JOIN items ON items.id=charges.itemid " +
+//                "LEFT JOIN providers ON providers.id=payments.provider " +
+//                "WHERE charges.id=" + chargeId + " AND providers.id IS NOT NULL AND NOT providers.reserved " +
                 "UNION " +
                 "SELECT 1 AS sequence, charges.id, CASE WHEN payments.id IS NULL THEN '' ELSE DATE_FORMAT(payments.`date`,'%m/%d/%y') END AS paymentdate, " +
                 "CASE WHEN payments.id IS NULL THEN '' ELSE payments.checknumber END AS checknumber, CASE WHEN payments.id IS NULL THEN '' ELSE payments.amount END AS paymentamount, " +
@@ -786,10 +766,7 @@ public class BillingStatement {
         pc.append(htmTb.addCell("Payor Name", htmTb.CENTER, "width=\"400\""));
         pc.append(htmTb.addCell("Amount", htmTb.RIGHT, "width=\"100\""));
         pc.append(htmTb.endRow());
-
         currentLine ++;
-        checkForPageBreak(htmTb, null, null, statementDate);
-
         htmTb.setCellVAlign("top");
 
         ResultSet pmtRs=io.opnRS(paymentQuery);
@@ -800,7 +777,6 @@ public class BillingStatement {
             pc.append(htmTb.addCell(Format.formatCurrency(pmtRs.getDouble("paymentamount")), htmTb.RIGHT));
             pc.append(htmTb.endRow());
 
-            currentLine ++;
             checkForPageBreak(htmTb, null, null, statementDate);
 
             paymentsFound=true;
@@ -812,9 +788,6 @@ public class BillingStatement {
         pc.append(htmTb.endCell());
         pc.append(htmTb.endRow());
 
-        currentLine ++;
-        checkForPageBreak(htmTb, null, null, statementDate);
-        
         if(!paymentsFound) { pc.delete(0, pc.length()); }
 
         System.gc();
@@ -833,7 +806,7 @@ public class BillingStatement {
             }
             if(currPage == 1) {
                 out.print(printHeadings(htmTb, patientRs, envRs, printOption, statementDate));
-                currentLine=1;
+                currentLine=14;
             } else {
                 out.print(printSecondPageHeadings(htmTb));
                 currentLine=1;

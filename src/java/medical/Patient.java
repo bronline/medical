@@ -1728,7 +1728,7 @@ public class Patient extends MedicalResultSet {
             String where=" where p.id=" + getId() + " ";
             if(!selectedCharges.equals("")) { where += " AND c.id in " + selectedCharges; }
             if(ageItemRs.getInt("mindays")==0 && ageItemRs.getInt("maxdays") != 0) {
-                where += " and v.date>DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("maxdays") + "' DAY) ";
+                where += " and v.date>=DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("maxdays") + "' DAY) ";
             } else if(ageItemRs.getInt("mindays") != 0 && ageItemRs.getInt("maxdays") != 0) {
                 where += " and v.date between DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("maxdays") + "' DAY) and DATE_SUB(CURRENT_DATE, INTERVAL '" + ageItemRs.getInt("mindays") + "' DAY) ";
             }
