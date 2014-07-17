@@ -923,8 +923,24 @@ public class Patient extends MedicalResultSet {
         int visitsRemaining=0;
         boolean copayAsPercent=false;
         String insuranceNotes="";
+        String authDate="";
+        int preAuthVisits=0;
+        int preAuthVisitsUsed = 0;
+        
+        String currentDate = Format.formatDate(new java.util.Date(), "yyyy-MM-dd");
 
-        ResultSet insRs=io.opnRS("SELECT providerid, ifnull(providers.name,'Cash') as payerName, patientinsurance.deductable, patientinsurance.copayamount, insurancevisits, patientinsurance.copayaspercent, IFNULL(patientinsurance.notes,'') as notes FROM patientinsurance left join providers on providers.id=patientinsurance.providerid where primaryprovider and active and patientId=" + this.id);
+        ResultSet insRs=io.opnRS("SELECT providerid, "
+                                + "ifnull(providers.name,'Cash') as payerName, "
+                                + "patientinsurance.deductable, "
+                                + "patientinsurance.copayamount, "
+                                + "insurancevisits, "
+                                + "patientinsurance.copayaspercent, "
+                                + "IFNULL(patientinsurance.notes,'') as notes, patientinsurance.effectivedate," 
+                                + "patientinsurance.expirationdate," 
+                                + "preauthvisits "
+                            + "FROM patientinsurance "
+                            + "left join providers on providers.id=patientinsurance.providerid "
+                            + "where primaryprovider and active and patientId=" + this.id);
         if(insRs.next()) {
             payerId=insRs.getString("providerid");
             payerName=insRs.getString("payerName");
@@ -933,6 +949,8 @@ public class Patient extends MedicalResultSet {
             visitsAllowed=insRs.getInt("insurancevisits");
             copayAsPercent=insRs.getBoolean("copayaspercent");
             insuranceNotes=insRs.getString("notes");
+            if(!insRs.getString("effectivedate").equals("0001-01-01") && !insRs.getString("expirationdate").equals("0001-01-01")) { authDate = insRs.getString("expirationdate"); }
+            preAuthVisits=insRs.getInt("preauthvisits");
         }
         insRs.close();
         insRs=null;
@@ -991,9 +1009,24 @@ public class Patient extends MedicalResultSet {
             if(vuRs.next()) { visitsUsed=vuRs.getInt(1); }
             vuRs.close();
             vuRs = null;
+            
+            ResultSet avuRs=io.opnRS("select " +
+                                    "  count(*) " +
+                                    "from visits v " +
+                                    "left join patientinsurance pi on pi.patientid=v.patientid " +
+                                    "where" +
+                                    "  v.patientid=" + id + " and " +
+                                    "  `date` between pi.effectivedate and pi.expirationdate and " +
+                                    "  pi.primaryprovider and " +
+                                    "  pi.active " +
+                                    "order by v.id desc limit 1");
+            if(avuRs.next()) { preAuthVisitsUsed=avuRs.getInt(1); }
+            avuRs.close();
+            avuRs = null;
 
             String payerColors="style=\"font-size: 12px; background-color: #cccccc; color: #000000;\"";
             if(visitsUsed>=visitsAllowed && visitsAllowed!=0) { payerColors="style=\"font-size: 12px; background-color: #ce0000; color: #ffffff;\""; }
+            if((!authDate.equals("") && (currentDate.compareTo(authDate)>0 || preAuthVisitsUsed>=preAuthVisits))) { payerColors="style=\"font-size: 12px; background-color: #ce0000; color: #ffffff;\""; }
 
             ci.append(htmTb.startRow(payerColors));
             ci.append(htmTb.addCell("<b>Payer: </b>" + payerName,"colspan=2 " + payerColors));

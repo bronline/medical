@@ -353,7 +353,7 @@ public class VisitActivity extends MedicalResultSet
                 System.out.println("VisitActivity-"+e.getMessage());
             }
         } else {
-            ResultSet groupRs=io.opnRS("select * from itemgroup where groupid=" + itemId);
+            ResultSet groupRs=io.opnRS("select * from itemgroup where groupid=" + itemId + " order by `sequence`");
             while(groupRs.next()) {
                 ResultSet giRs=io.opnRS("select * from items where id=" + groupRs.getInt("itemid"));
                 if(giRs.next()) {

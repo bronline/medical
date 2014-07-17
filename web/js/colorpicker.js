@@ -1,5 +1,3 @@
-<!-- flooble Color Picker header start --> 
-
      var perline = 9;
      var divSet = false;
      var curId;
@@ -138,4 +136,3 @@
      	return left;
      }
 
-<!-- flooble Color Picker header end -->

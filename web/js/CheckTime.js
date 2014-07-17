@@ -1,4 +1,3 @@
-<script language = "Javascript">
 var tmCh    = ":";
 var minHr   = 00;
 var maxHr   = 23;
@@ -76,4 +75,3 @@ function ValidateDate(what){
 	}
     return true
  }
-</script>

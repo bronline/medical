@@ -1,4 +1,5 @@
 <%@include file="template/pagetop.jsp"%>
+<%@include file="/ajax/ajaxstuff.jsp" %>
 <script type="text/javascript">
     function addVisit(patientId) {
 	location.href="writevisit.jsp?patientId="+patientId;
@@ -51,6 +52,27 @@
 
     function printReceipt(visitId) {
         window.open("visitreceipt.jsp?visitId="+visitId,"VisitReceipt");
+    }
+    
+    function updateAttentionMessage() {
+        var url = "ajax/updateattnmessage.jsp?update=y&attentionmsg=" + $("#attentionmsg").val();
+        $.ajax({
+            url: url,
+            success: function (data) {
+                $("#btn1").css("visibility","hidden");
+                alert("Attention message has been updated");
+            },
+            complete: function(data){
+
+            },
+            error: function() {
+                alert("There was a problem processing the request");
+            }
+        });        
+    }
+    
+    function checkUpdateButtonVisibility() {
+        $("#btn1").css("visibility","visible");
     }
 </script>
 <%
@@ -175,30 +197,42 @@
     }
 %>
 <%! public String getAttnMsgForm(RWInputForm attnForm, RWHtmlTable htmTb) throws Exception {
-    StringBuffer form=new StringBuffer();
-    attnForm.setTableWidth("660");
-    attnForm.setTableBorder("0");
-    attnForm.setAction("updaterecord.jsp?fileName=patients");
-    attnForm.setMethod("POST");
-    attnForm.lRcd.beforeFirst();
-    attnForm.setDftTextAreaCols("110");
+    /*
+        StringBuffer form=new StringBuffer();
+        attnForm.setTableWidth("660");
+        attnForm.setTableBorder("0");
+        attnForm.setAction("updaterecord.jsp?fileName=patients");
+        attnForm.setMethod("POST");
+        attnForm.lRcd.beforeFirst();
+        attnForm.setDftTextAreaCols("110");
 
-    htmTb.setCellVAlign("TOP");
-    htmTb.setWidth("700");
-    if(attnForm.lRs.next()) {
-        form.append("<div align=\"center\">\n");
-        form.append(attnForm.startForm());
-        form.append(attnForm.hidden(attnForm.lRs.getString("id"), "rcd"));
+        htmTb.setCellVAlign("TOP");
+        htmTb.setWidth("700");
+        if(attnForm.lRs.next()) {
+            form.append("<div align=\"center\">\n");
+            form.append(attnForm.startForm());
+            form.append(attnForm.hidden(attnForm.lRs.getString("id"), "rcd"));
+            form.append(htmTb.startTable());
+            form.append(htmTb.startRow());
+            form.append(htmTb.addCell("Attention Message: "));
+            form.append(htmTb.addCell(attnForm.getInputItemOnly("attentionmsg", "class=tBoxText")));
+            form.append(htmTb.addCell(attnForm.submitButton("update", "class=button")));
+            form.append(htmTb.endTable());
+            form.append(attnForm.endForm());
+            form.append("</div>\n");
+        }
+        return form.toString();
+    */
+        StringBuffer form=new StringBuffer();
+        htmTb.setCellVAlign("TOP");
+        htmTb.setWidth("700");
         form.append(htmTb.startTable());
         form.append(htmTb.startRow());
         form.append(htmTb.addCell("Attention Message: "));
-        form.append(htmTb.addCell(attnForm.getInputItemOnly("attentionmsg", "class=tBoxText")));
-        form.append(htmTb.addCell(attnForm.submitButton("update", "class=button")));
+        form.append(htmTb.addCell(attnForm.getInputItemOnly("attentionmsg", "style=\"width: 500px; height: 50px;\" class=tBoxText onKeyPress=\"checkUpdateButtonVisibility()\" onBlur=\"updateAttentionMessage()\"")));
+        form.append(htmTb.addCell(attnForm.button("update", "class=\"button\" onClick=\"$('#btn1').css('visibility','hidden');\" style=\"visibility: hidden;\"")));
         form.append(htmTb.endTable());
-        form.append(attnForm.endForm());
-        form.append("</div>\n");
-    }
-    return form.toString();
+        return form.toString();
     }
 %>
 <%! public String getPatientVisitSummary(RWConnMgr io, int patientId) throws Exception {

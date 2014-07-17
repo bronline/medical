@@ -88,12 +88,12 @@ function shortcut() {
 }
 
 function activateShortcut() {
-   var elem = document.getElementById(shortcutText)
+   var elem = document.getElementById(shortcutText);
    if(enablePageScripts) {
        if (elem!=null) {
         //alert(elem.name)
         elem.disabled=false;
-        elem.click()
+        elem.click();
        } else {
         alert('Button not defined!');
         var buttons = document.getElementsByTagName("input");
@@ -103,7 +103,7 @@ function activateShortcut() {
             }
         }
        }
-       shortcutText=''
+       shortcutText='';
    }
 }
 
@@ -401,4 +401,39 @@ String.prototype.ReplaceAll = function(stringToFind,stringToReplace){
         index = temp.indexOf(stringToFind);
     }
     return temp;
-    }
+}
+
+function showAttentionMessagePopup() {
+    var url = "ajax/updateattnmessage.jsp";
+    $.ajax({
+        url: url,
+        success: function (data) {
+            $("#txtHint").html(data);
+            $("#txtHint").css("top","150");
+            showHide(txtHint,"SHOW");
+        },
+        complete: function(data){
+
+        },
+        error: function() {
+            alert("There was a problem processing the request");
+        }
+    });        
+}
+
+function updateAttentionMessage() {
+    var url = "ajax/updateattnmessage.jsp?update=y&attentionmsg=" + $("#attentionmsg").val();
+    $.ajax({
+        url: url,
+        success: function (data) {
+            $("#attentionMessageText").html(data);
+            showHide(txtHint,"HIDE");
+        },
+        complete: function(data){
+
+        },
+        error: function() {
+            alert("There was a problem processing the request");
+        }
+    });        
+}

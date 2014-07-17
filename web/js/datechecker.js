@@ -1,5 +1,4 @@
 
-<!-- Begin
 // Check browser version
 var isNav4 = false, isNav5 = false, isIE4 = false
 var strSeperator = "/"; 
@@ -414,4 +413,4 @@ if ((intYear % 4) == 0) { return true; }
 }
 return false;
 }
-//  End -->
+

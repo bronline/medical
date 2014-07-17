@@ -190,7 +190,7 @@ public class Visit extends MedicalResultSet {
         } else {
             attnMsg="";
         }
-        attention.append("<div style=\"font-size: " + fontSize + "; width: 400; height: 35; overflow: auto;\">" + attnMsg + "</div>");
+        attention.append("<div id=\"attentionMessageText\" style=\"cursor: pointer; font-size: " + fontSize + "; width: 400; height: 35; overflow: auto;\" onClick=\"showAttentionMessagePopup()\">" + attnMsg + "</div>");
         
         return htmTb.getFrame(htmTb.BOTH, "","silver",0,attention.toString());
     }

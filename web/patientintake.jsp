@@ -32,7 +32,6 @@
         padding: 5px;
         border-radius: 10px;
 */
-    }
 </style>
 <script type="text/javascript">
     function saveAccountInformation(formId, patientId) {
