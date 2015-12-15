@@ -14,10 +14,15 @@
   function getId() {
     var recordId=document.getElementById("ID")
     if(recordId.value=="0") {
+        var today = new Date();
+        var dateString = today.toLocaleDateString();
+        
         document.getElementById("effectivedate").value="01/01/0001";
         document.getElementById("expirationdate").value="01/01/0001";
         document.getElementById("hicfa7dob").value="01/01/0001";
         document.getElementById("insuranceeffective").value="01/01/0001";
+        document.getElementById("insurancetermdate").value="12/31/2099";
+        document.getElementById("insurancebenefitsdate").value=dateString;
     }
   }
 

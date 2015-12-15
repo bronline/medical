@@ -16,11 +16,11 @@
         String userQry = "SELECT * FROM userinfo ui " +
                 "LEFT JOIN userroles ur ON ur.rolprf=ui.id " +
                 "LEFT JOIN roles r ON r.id=ur.role " +
-                "WHERE secprf='" + request.getParameter("userName") + "' AND r.applicationid=6";
+                "WHERE username='" + request.getParameter("userName") + "' AND r.applicationid=6";
         ResultSet uRs = cm.opnRS(userQry);
         if(uRs.next()) {
             if(uRs.getString("secpass").equals(request.getParameter("password"))) {
-                session.setAttribute("databaseName", userName);
+                session.setAttribute("databaseName", uRs.getString("instancename"));
                 returnLocation="patientmaint.jsp";
             } else {
                 session.setAttribute("errorMessage", "User name or password is not valid");

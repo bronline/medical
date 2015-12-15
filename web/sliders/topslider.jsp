@@ -21,12 +21,11 @@
 }
 
 #topSliderContent {
-    margin: 5px 5px 5px 5px;
     position: absolute;
     text-align:center;
     color:#333333;
     font-weight:bold;
-    padding: 10px;
+    padding-top: 0px;
 }
 
 #openCloseTabWrapper {
@@ -79,13 +78,30 @@ $(document).ready(function() {
                     }, 500 );
             $("#topMenuImage").html('<img src="images/arrow_up.png" alt="close" height="25px" />');
             $("#openCloseIdentifier").hide();
+            setContent();
         }
     });
+    
 
 });
+
+function setContent() {
+//        var url="ajax/showofficeappointments.jsp";
+    if($("#topSliderContent").html() != '') {
+        $.ajax({
+            type: "POST",
+            url: "ajax/showofficeappointments.jsp",
+            success: function(data) {
+                $('#topSliderContent').html(data);
+            },
+            complete: function(data) {
+
+            }
+
+        });
+    }
+}
 </script>
-
-
 
 
 <div id="topSliderWrap">

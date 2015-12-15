@@ -34,6 +34,8 @@
     ResultSet itemRs=io.opnRS("select description from items where id=" + ID);
     if(itemRs.next()) {
         RWInputForm frm = new RWInputForm(lRs);
+        String [] preloadFields = {"itemid"};
+        String [] preloadValues = {ID};
 
     // Set display attributes for the input form
         frm.setTableBorder("0");
@@ -45,6 +47,8 @@
         frm.setDeleteButtonText("remove");
         frm.setFormHeight("110");
         frm.setTableWidth("410");
+        frm.setPreLoadFields(preloadFields);
+        frm.setPreLoadValues(preloadValues);
 
         out.print("<div align='center' width='100%'><b>" + itemRs.getString("description") + "</b></div>");
         out.print(frm.getInputForm());

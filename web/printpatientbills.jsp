@@ -22,6 +22,7 @@ function win(where,close){
     String batchList = "";
     String batchQuery   = "";
     String patId = request.getParameter("patientId");
+    String box22 = request.getParameter("box22");
     String printer = env.getDefaultPrinter();
     int printType = 2;
 
@@ -131,6 +132,7 @@ function win(where,close){
             cms1500.setPrintType(printType);
             cms1500.setMapDocument(thisBatch.getDocumentMap());
             cms1500.setRepeatingOffset(thisBatch.getRepeatingOffset());
+            if(box22 != null) { cms1500.box22 = box22; }
 
             cms1500.print(bRs.getString("batchId"), bRs.getString("patientid"));
 

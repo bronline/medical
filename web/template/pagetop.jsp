@@ -103,6 +103,6 @@
 <!-- start of body -->              
 <% }
 
-    try {
+//    try {
 %>   
 <%@ include file="/tabtop.jsp" %>

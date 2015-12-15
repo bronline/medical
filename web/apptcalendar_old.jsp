@@ -7,7 +7,7 @@
 <style>
 th	    { font-size: 11px;
               font-family: Arial, Helvetica, sans-serif;
-	      background color: silver;
+	      background-color: silver;
 	      color: black;  }
 </style>
 <script language="javascript">

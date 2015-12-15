@@ -218,18 +218,20 @@ function refreshConditionList(v, c) {
     $.ajax({
         url: nlUrl,
         success: function(data){
-            $(patientConditions).html(data);
+            $(patientconditionsbubble).html(data);
         },
         error: function() {
             alert("There was a problem processing the request");
+        },
+        complete: function() {
+            refreshSymptomList(c,v);
         }
     });
 
-    if(c!=null) { refreshSymptomList(c); }
 }
 
-function refreshSymptomList(conditionId) {
-   var slUrl = "ajax/refreshsymptomlist.jsp?conditionId="+conditionId;
+function refreshSymptomList(conditionId,visitId) {
+   var slUrl = "ajax/refreshsymptomlist.jsp?conditionId="+conditionId+"&visitId="+visitId;
 
     $.ajax({
         url: slUrl,
@@ -323,6 +325,46 @@ function editSOAPNote(noteId,v) {
           location.href="deletevisit.jsp?visitId="+visitId
       }
   }
+  
+  function newCondition(v) {
+    enablePageScripts=false;
+    objectName="txtHint";
+
+    $(txtHint).html('');
+
+    var url="ajax/patientcondition.jsp?visitId=" + v + "&sid="+Math.random();
+  
+    $.ajax({
+        url: url,
+        success: function(data){
+            $(txtHint).html(data);
+            ajaxComplete=true;
+            setFormPosition(e,txtHint);
+            showHide(txtHint,'SHOW');
+        },
+        error: function() {
+            alert("There was a problem processing the request");
+        }
+    });      
+
+  }
+  
+
+/*    
+    $.ajax({
+        url: "ajax/getconditiondxcodes.jsp",
+        success: function(data) {
+            $(patientsymptomsbubble).html(data);
+        },
+        error: function() {
+            alert("There was a problem refreshing the diagnosis codes for this visit, please refresh");
+        },
+        complete: function() {
+            refreshConditionList();
+        }
+    });
+*/         
+
 
     function getPayment(v) {
         enablePageScripts=false;

@@ -56,7 +56,7 @@ self.close();
             thisBatch.setProvider(provider);
             thisBatch.setDescription("");
             thisBatch.update();
-
+/*
             myQuery = "select * from (" +
                           "select " +
                           "a.itemid, " +
@@ -99,12 +99,14 @@ self.close();
                           ") e " +
                           "where balance <> 0 " +
                           "order by date, description";
+*/
+            myQuery = "CALL rwcatalog.prGetChargesForBillingBatch('" + databaseName + "', 0, " + provider + ", '" + startDate + "','" + endDate + "')";
     // For each charge that qualifies, write it to the batch
             ResultSet pRs = io.opnRS(myQuery);
             while (pRs.next()) {
                 thisBatchCharge.setId(0);
                 thisBatchCharge.setBatchId(thisBatch.getId());
-                thisBatchCharge.setChargeId(pRs.getInt("id"));
+                thisBatchCharge.setChargeId(pRs.getInt("chargeid"));
                 thisBatchCharge.update();
                 wroteCharges = true;
             }

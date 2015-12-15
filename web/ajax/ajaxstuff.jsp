@@ -56,7 +56,7 @@
 
     function checkForNew(what, url) {
         if(what.value == -1) {
-            formObj=what
+            formObj=what;
             showInputForm(window.event,url,0,0,txtHint);
         }
     }
@@ -143,7 +143,7 @@
             url=url+"?";
         }
 
-        url+="id="+recId+"&patientid="+patientId+"&parentUrl="+self.location.href
+        url+="id="+recId+"&patientid="+patientId+"&parentUrl="+self.location.href;
 
         $.ajax({
             url: url,
@@ -210,11 +210,16 @@
                    showHide(txtHint,'HIDE');
                    refreshNoteList(visitId);
                 } else if(parentLocation.toUpperCase() == 'CONDITION') {
-                   showHide(txtHint,'HIDE');
-                   $(formObj).html(data);
-                   refreshConditionList(visitId, conditionId);
-//                   refreshSymptomList($("#rcd").val());
-                }
+                    showHide(txtHint,'HIDE');
+                    $(formObj).html(data);
+                    if(mode == 'DELETE') {
+                        refreshConditionList(visitId,'undefined');
+                    } else {
+                        try{
+                            refreshConditionList(visitId, conditionId);
+                        } catch (err) {}
+                    }
+                } 
 
                 if(refreshObject != null) {
                     $(refreshObject).html(data);
@@ -226,6 +231,12 @@
             complete: function() {
                 ajaxComplete=true;
                 enableMouseOut=true;
+                if(parentLocation.toUpperCase() == 'XRAYS') {
+                    location.href = "xrays.jsp";
+//                    showHide(txtHint,'HIDE');
+//                    $('#xrayPatientCondition').html(data);
+//                    refreshXrayConditionList(conditionId);
+                }                
             }
         });
 

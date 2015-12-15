@@ -80,9 +80,11 @@
         patientTypeFilter=" and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)";
    }
 
-   if(resourceId != null && resourceId != "0") {
-        resourceFilter = " where charges.resourceid = " + resourceId;
+   if(resourceId != null && !resourceId.equals("0")) {
+        resourceFilter = " where c.resourceid = " + resourceId + " AND ";
         target += "&resourceId=" + resourceId;
+   } else {
+       resourceId="0";
    }
 
    firstVisitQuery = "select `visits`.`patientid` AS `patientid`, min(`visits`.`date`) AS `date` " +
@@ -90,20 +92,20 @@
            "left join (select distinct visitid, resourceid from charges) c on c.visitid=`visits`.id " + resourceFilter.replaceAll("charges.","c.") +
            " group by `visits`.`patientid`";
 
-//   ResultSet npRs = io.opnRS("select count(*) from firstvisits where date between '" + startDate + "' and '" + endDate + "'" + patientTypeFilter);
-   ResultSet npRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "'" + patientTypeFilter);
+//   ResultSet npRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "'" + patientTypeFilter);
+   ResultSet npRs = io.opnRS("CALL rwcatalog.prGetNewPatientCount('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "'," + resourceId + ")");
    if (npRs.next()) {
        newPatients=npRs.getString(1);
    }
    npRs.close();
 
-//   ResultSet newCashPtRs = io.opnRS("select count(*) from firstvisits where date between '" + startDate + "' and '" + endDate + "' and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
-   ResultSet newCashPtRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "' and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+//   ResultSet newCashPtRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "' and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+   ResultSet newCashPtRs = io.opnRS("CALL rwcatalog.prGetNewCashPatientCount('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "'," + resourceId + ")");
    if(newCashPtRs.next()) { newCashPatients = newCashPtRs.getInt(1); }
    newCashPtRs.close();
 
-//   ResultSet newInsPtRs = io.opnRS("select count(*) from firstvisits where date between '" + startDate + "' and '" + endDate + "' and patientid in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
-   ResultSet newInsPtRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "' and patientid in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+//   ResultSet newInsPtRs = io.opnRS("select count(*) from (" + firstVisitQuery + ") a where date between '" + startDate + "' and '" + endDate + "' and patientid in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+   ResultSet newInsPtRs = io.opnRS("CALL rwcatalog.prGetNewInsurancePatientCount('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "'," + resourceId + ")");
    if(newInsPtRs.next()) { newInsPatients = newInsPtRs.getInt(1); }
    newInsPtRs.close();
 
@@ -114,11 +116,13 @@
    }
    pvRs.close();
 
-   ResultSet cashPtVisitsRs = io.opnRS("select count(*) from visits left join (select distinct visitid, resourceid from charges " + resourceFilter + ") c on c.visitid=`visits`.id where date between '" + startDate + "' and '" + endDate + "' and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+//   ResultSet cashPtVisitsRs = io.opnRS("select count(*) from visits left join (select distinct visitid, resourceid from charges " + resourceFilter + ") c on c.visitid=`visits`.id where date between '" + startDate + "' and '" + endDate + "' and patientid not in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+   ResultSet cashPtVisitsRs = io.opnRS("CALL rwcatalog.prGetCashPatientVisits('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "')");
    if (cashPtVisitsRs.next()) { cashPatientVisits=cashPtVisitsRs.getInt(1); }
    cashPtVisitsRs.close();
 
-   ResultSet insPtVisitsRs = io.opnRS("select count(*) from visits left join (select distinct visitid, resourceid from charges " + resourceFilter + ") c on c.visitid=`visits`.id where date between '" + startDate + "' and '" + endDate + "' and patientid in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+//   ResultSet insPtVisitsRs = io.opnRS("select count(*) from visits left join (select distinct visitid, resourceid from charges " + resourceFilter + ") c on c.visitid=`visits`.id where date between '" + startDate + "' and '" + endDate + "' and patientid in (select patientid from patientinsurance where active and primaryprovider and current_date>=insuranceeffective)");
+   ResultSet insPtVisitsRs = io.opnRS("CALL rwcatalog.prGetInsurancePatientVisits('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "')");
    if (insPtVisitsRs.next()) { insPatientVisits=insPtVisitsRs.getInt(1); }
    insPtVisitsRs.close();
 
@@ -232,6 +236,8 @@
 
    out.print("<tr><th colspan=3>Charges</td><tr>");
 
+    out.flush();
+    
    String chargeFilter = "select " +
            "`a`.`id` AS `chargeid`, " +
            "`a`.`resourceid`, "+
@@ -286,27 +292,16 @@
                         "join `items` `d` on `b`.`itemid` = `d`.`id` " +
                         "left join `providers` `e` on `a`.`provider` = `e`.`id` where `a`.`amount` > 0" +
                         resourceFilter.replaceAll("where", "and").replaceAll("charges.", "b.");
-/*
-   String paymentsQuery="select chargeitem, count(*), sum(paymentamount) " +
-                        "from paymentsummary c " +
-//                        "where provider <> 'write off' && " +
-                        "where provider = 'cash' && " +
-                        "paymentdate between '" + startDate + "' and '" + endDate + "' " +
-                        "and (parentpayment=0 || (parentpayment<>0 and paymentdate=(select date from payments p where p.id=c.parentpayment))) " +
-                        "group by chargeitem";
-*/
+
    String paymentsQuery="select chargeitem, count(*), sum(paymentamount) " +
                         "from ( " +
                         paymentSummaryQuery +
                         ") pqs " +
-//                        "where provider <> 'write off' && " +
-                        "where provider = 'cash' && " +
+                        "where provider = 'cash' AND " +
                         "pqs.paymentdate between '" + startDate + "' and '" + endDate + "' " +
-                        "and (pqs.parentpayment=0 || (pqs.parentpayment<>0 and paymentdate=(select date from payments p where p.id=pqs.parentpayment))) " +
+//                        "and (pqs.parentpayment=0 || (pqs.parentpayment<>0 and paymentdate=(select date from payments p where p.id=pqs.parentpayment))) " +
                         "group by pqs.chargeitem";
 
-//   ResultSet psRs = io.opnRS("select chargeitem, count(*), sum(paymentamount) from paymentsummary where provider <> 'write off' && paymentdate between '" + startDate + "' and '" + endDate + "' group by chargeitem union SELECT 'Unapplied' as chargeitem, count(*), sum(originalamount) FROM payments where chargeid=0 and date between '" + startDate + "' and '" + endDate + "' group by 'Unapplied'");
-//   ResultSet psRs = io.opnRS("select chargeitem, count(*), sum(paymentamount) from paymentsummary where provider <> 'write off' && paymentdate between '" + startDate + "' and '" + endDate + "' group by chargeitem union " + unappliedQuery);
    ResultSet psRs = io.opnRS(paymentsQuery + " union " + unappliedQuery);
    while (psRs.next()) {
        out.print("<tr>");
@@ -324,6 +319,8 @@
    out.print("<td align=right style=\"border-top: 1px solid black\">" + currencyFormatter.format(totPay) + "</td>");
    out.print("</tr>");
 
+   out.flush();
+   
    ResultSet rsvRs = io.opnRS("select id, name, isadjustment from providers where reserved order by name");
    while(rsvRs.next()) {
        totWoCnt=0;
@@ -351,6 +348,8 @@
            out.print("<td align=right style=\"border-top: 1px solid black\">" + totWoCnt + "</td>");
            out.print("<td align=right style=\"border-top: 1px solid black\">" + currencyFormatter.format(totWo) + "</td>");
            out.print("</tr>");
+           
+           out.flush();
          }
    }
 
@@ -387,7 +386,8 @@
        totWo=0.0;
        boolean payerHasDetail = false;
 
-       ResultSet paRs = io.opnRS(insuranceDetailQuery.replaceAll("####", insRs.getString("providerid")));
+//       ResultSet paRs = io.opnRS(insuranceDetailQuery.replaceAll("####", insRs.getString("providerid")));
+       ResultSet paRs = io.opnRS("CALL rwcatalog.prGetPaymentsForProvider('" + databaseName + "','" + resourceFilter + "','" + startDate + "','" + endDate + "'," + insRs.getString("providerid") + ")");
        while (paRs.next()) {
            payerHasDetail = true;
            if(paRs.getRow() == 1) { out.print("<tr><th colspan=3>Payments from (" + insRs.getString("name") + ")</td><tr>"); }
@@ -406,11 +406,15 @@
            out.print("<td align=right style=\"border-top: 1px solid black\">" + totWoCnt + "</td>");
            out.print("<td align=right style=\"border-top: 1px solid black\">" + currencyFormatter.format(totWo) + "</td>");
            out.print("</tr>");
+           
+           out.flush();
        }
    }
 
    out.print("</table></div>");
 
+   out.flush();
+   
    out.print("<br/><br/>");
 
    String cashPtPayments = "select sum(amount) from payments p left join charges c on c.id=p.chargeid left join providers pr on pr.id=p.provider left join patientinsurance pi on pi.patientid=p.patientid and (pi.active or not pi.active and pi.insuranceeffective<='" + startDate + "') and pi.primaryprovider  where   `date` between '" + startDate + "' and '" + endDate + "' and ((reserved   and not pr.isadjustment  and pr.id<>10) or p.provider=0) and p.chargeid<>0 and pi.id is null " + resourceFilter.replaceAll("where","and").replaceAll("charges.", "c.");

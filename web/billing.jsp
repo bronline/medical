@@ -155,6 +155,7 @@
     // Instantiate result sets for use in the comboboxes
     insQuery += " order by name";
 
+
     ResultSet lRs = io.opnRS(insQuery);
     ResultSet patRs = io.opnRS(patQuery);
 
@@ -229,7 +230,7 @@
             "left join patients c on b.patientid=c.id " +
             "left join payments p on a.id=p.chargeid " +
 //            "join (select * from patientinsurance where primaryprovider=1 and active) d on c.id=d.patientid " +
-            "join patientinsurance pi on c.id=pi.patientid and pi.primaryprovider=1 and pi.active " +
+            "join patientinsurance pi on c.id=pi.patientid and pi.primaryprovider=1 and pi.active and pi.verified " +
             "left join providers e on e.id=(CASE WHEN pc.providerid=0 THEN pi.providerid ELSE pc.providerid END) " +
             "where " +
             "  not exists (select id from batchcharges where chargeid=a.id)" +
@@ -284,6 +285,7 @@
     //out.print(myQuery);
 
     if ((patientId==0 && providerId.equals("0"))) {
+/*
         myQuery="select " +
                 "providerid, " +
                 "concat('<input type=checkbox checked name=chk', providerId, '>') as fld, name , " +
@@ -293,7 +295,8 @@
                 ") f " + whereClause +
                 "and not exists (select patientid from nonbillableitems where patientid=f.patientid and providerid=f.providerid and itemid=f.itemid) " +
                 "group by providerid, name order by name";
-
+*/
+        myQuery = "CALL rwcatalog.prGetBillingByPayer('" + databaseName + "', " + patientId + ", " + providerId + ", '" + Format.formatDate(startDate, "yyyy-MM-dd") + "','" + Format.formatDate(endDate, "yyyy-MM-dd") + "')";
     // out.print(myQuery);
     // Create an RWFiltered List object
         RWFilteredList lst = new RWFilteredList(io);
@@ -347,12 +350,6 @@
         long balance;
         while (pRs.next()) {
             chargeId=pRs.getString("id");
-            //bDDefaultPayment = patient.getDefaultPayment(pRs.getInt("itemid"));
-            //defaultPayment = ""+bDDefaultPayment;
-            //balance=pRs.getLong("balance");
-            //if (balance < bDDefaultPayment.longValue()) {
-            //    defaultPayment=pRs.getString("balance");
-            //}
             iForm.append(htmTb.startRow("bgcolor="+rowColor));
             iForm.append(htmTb.addCell(pRs.getString("date"), "width=50"));
             iForm.append(htmTb.addCell(pRs.getString("patient"), "width=150"));
@@ -378,7 +375,7 @@
         if(request.getParameter("secondary") != null) {
             providerSQL = "SELECT providerid FROM patientinsurance WHERE not primaryprovider and patientid=" + patientId + " limit 1";
         } else {
-            providerSQL = "SELECT providerid FROM patientinsurance WHERE primaryprovider and patientid=" + patientId + " limit 1";
+            providerSQL = "SELECT providerid FROM patientinsurance WHERE primaryprovider and verified and active and patientid=" + patientId + " limit 1";
         }
         ResultSet patInsRs=io.opnRS(providerSQL);
         if(patInsRs.next()) { providerId=patInsRs.getString("providerid"); }

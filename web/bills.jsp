@@ -16,6 +16,7 @@ function printBills(patientId) {
         complete: function(data) {
             $('#secondaryInsuranceBubble').css('visibility', 'visible');
             $('#secondaryInsuranceBubble').css('display','');
+            alert('hello');
         }
 
     });

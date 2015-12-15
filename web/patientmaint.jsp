@@ -107,6 +107,45 @@
     $('#txtHint').css('box-shadow','');
 
   }
+  
+  function setInsuranceActive(patientId,recordId,what) {
+        activeState = "false";
+        if(what.checked) { activeState = "true"; }
+        url = "ajax/setinsuranceactive.jsp?patientId="+patientId+"&id="+recordId+"&activeState="+activeState;
+        $.ajax({
+            type: "POST",
+            url: url,
+            success: function(data) {
+                $("#miniContactBubble").html(data);
+                
+                if(what.checked) {
+                    alert("Insurance has been set to active");
+                } else {
+                    alert("Insurance has been set to inactive");
+                }
+            },
+            complete: function(data) {
+
+            }
+
+        });
+  }
+  
+  function setInsuranceVerified(patientId,recordId,what) {
+        url = "ajax/setinsuranceverified.jsp?patientId="+patientId+"&id="+recordId
+        $.ajax({
+            type: "POST",
+            url: url,
+            success: function(data) {
+                what.disabled = "disabled";
+                alert("Insurance has been set to verified and is now active");
+            },
+            complete: function(data) {
+
+            }
+
+        });
+  }
 </script>
 <body onLoad="loadMask()">
 

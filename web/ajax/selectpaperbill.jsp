@@ -24,6 +24,8 @@ function printTypeSelected() {
     out.print("<form name=\"printTypeSelectForm\" action=\"printpatientbills.jsp?patientId=" + patientId + "\" method=post>\n");
     out.print("<input type=\"radio\" name=\"batchPrintType\" id=\"batchPrintType\" value=\"1\">Electronic<br/>");
     out.print("<input type=\"radio\" name=\"batchPrintType\" id=\"batchPrintType\" value=\"2\">Paper Bill<br/>");
+    out.print("<br/>");
+    out.print("Resubmission Code (Box 22): <input type=\"text\" name=\"box22\" id=\"box22\" class=\"tBoxText\" value=\"\">");
     out.print("<input type=\"hidden\" name=\"patientId\" id=\"patientId\" value=\"" + patientId + "\">");
     for(Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
         var=(String)e.nextElement();

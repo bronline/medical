@@ -1,4 +1,5 @@
 <%
+
         System.gc();
 
         String companyName=env.getString("companyname");
@@ -40,12 +41,14 @@
 <!-- start of included methods -->
 
 <%
+
         }
-    } catch (Exception xxx) {
-        System.out.println(databaseName + ": " + new java.util.Date() + " - " + request.getRemoteAddr() + " pagebottom.jsp - problem presenting page (" + xxx.getMessage() + ")");
-    }
+//    } catch (Exception xxx) {
+//        System.out.println(databaseName + ": " + new java.util.Date() + " - " + request.getRemoteAddr() + " pagebottom.jsp - problem presenting page (" + xxx.getMessage() + ")");
+//    }
 
     if(redirect) {
         out.print("<script type=\"text/javascript\">window.location.href=\"" + self + "\"</script>");
     }
+       
 %>
