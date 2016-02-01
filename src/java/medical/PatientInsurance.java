@@ -50,6 +50,10 @@ public class PatientInsurance extends MedicalResultSet {
     private double deductable       = 0.0;
     private String notes            = "";
     private int preAuthVisits       = 0;
+    private String insuranceTermDate= "2099-12-31";
+    private boolean verified        = false;
+    private String insuranceBenefitsDate = Format.formatDate(new java.util.Date(), "yyyy-MM-dd");
+    private Environment env;
 
     private String insuranceEffective = "0001-01-01";
     private int insuranceVisits     = 0;
@@ -101,12 +105,16 @@ public class PatientInsurance extends MedicalResultSet {
             deductable = getDouble("deductable");
             notes = getString("notes");
             preAuthVisits = getInt("preauthvisits");
+            insuranceTermDate = getString("insurancetermdate");
+            verified = getBoolean("verified");
+            insuranceBenefitsDate = getString("insurancebenefitsdate");
         }
         
         beforeFirst();
     }
     
     public String getInputForm() throws Exception {
+        boolean useVerifiedFlag = isUseVerifyFlag();
         beforeFirst();
         ins.delete(0, ins.length());
         frm.setResultSet(this);
@@ -134,12 +142,15 @@ public class PatientInsurance extends MedicalResultSet {
 
         ins.append(frm.getInputItem("providerid", "onChange=checkForNew(this,'newpayer.jsp')"));
         ins.append(frm.getInputItem("active"));
+        if(useVerifiedFlag) { ins.append(frm.getInputItem("verified")); }  else { ins.append(frm.hidden("1", "verified")); }
         ins.append(frm.getInputItem("ispip"));
         ins.append(frm.getInputItem("planname"));
         ins.append(frm.getInputItem("primaryprovider"));
         ins.append(frm.getInputItem("providernumber"));
         ins.append(frm.getInputItem("providergroup"));
+        ins.append(frm.getInputItem("insurancebenefitsdate"));
         ins.append(frm.getInputItem("insuranceeffective"));
+        ins.append(frm.getInputItem("insurancetermdate"));
         ins.append(frm.getInputItem("insurancevisits"));
         ins.append(frm.getInputItem("groupname"));
         ins.append(frm.getInputItem("guarantor", "onChange=\"guarantorStatusChange(this)\""));
@@ -298,29 +309,41 @@ public class PatientInsurance extends MedicalResultSet {
 
     public String getPatientInsuranceList(int patientId) {
         try {
-            rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+            ResultSet ptRs = io.opnRS("select cashonly from patients where id=" + patientId);
+            boolean cashOnly = false;
+            if(ptRs.next()) { cashOnly = ptRs.getBoolean("cashonly"); }
+            ptRs.close();
+            ptRs = null;
+            
+            int listColumns = 6;
+            int nameWidth = 200;
+            if(isUseVerifyFlag()) { listColumns = 7;  nameWidth = 150; }
+//            rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+            rs = io.opnRS("CALL rwcatalog.prInsuranceDisplay('" + io.getLibraryName() + "'," + patientId + ")");
+
             ins.delete(0, ins.length());
             ins.append(htmTb.startTable("545", "0"));
             String onClickLocationA = "onClick=window.open(\"patientinsurance_d.jsp?id=";
             String onClickLocationB = "\",\"Insurance\",\"width=500,height=600,left=50,top=80,toolbar=0,status=0,\"); ";
             String linkClass = " style=\"cursor: pointer; color: #030089;\"";
-            ins.append(htmTb.roundedTop(5, "", "#030089", "insurancedivision"));
+            ins.append(htmTb.roundedTop(listColumns, "", "#030089", "insurancedivision"));
             // Display the heading
             ins.append(htmTb.startRow("style=\"cursor: pointer\" " + onClickLocationA + "0&patientId=" + patientId + onClickLocationB));
-            ins.append(htmTb.headingCell("", htmTb.LEFT, "width=5%"));
-            ins.append(htmTb.headingCell("Payer", htmTb.LEFT, "width=35%"));
-            ins.append(htmTb.headingCell("Phone", htmTb.LEFT, "width=20%"));
-            ins.append(htmTb.headingCell("Insured's Id", htmTb.LEFT, "width=20%"));
-            ins.append(htmTb.headingCell("Group Number", htmTb.LEFT, "width=20%"));
+            ins.append(htmTb.headingCell("", htmTb.LEFT, "width=\"15px\""));
+            ins.append(htmTb.headingCell("Payer", htmTb.LEFT, "width=\"" + nameWidth + "px\""));
+            ins.append(htmTb.headingCell("Phone", htmTb.LEFT, "width=\"75px\""));
+            ins.append(htmTb.headingCell("Insured's Id", htmTb.LEFT, "\"width=100px\""));
+            ins.append(htmTb.headingCell("Group Number", htmTb.LEFT, "width=\"100px\""));
+            ins.append(htmTb.headingCell("Active", htmTb.CENTER,"width=\"50px\""));
+            if(isUseVerifyFlag()) { ins.append(htmTb.headingCell("Verified", htmTb.CENTER,"width=\"50px\"")); }
             //        ins.append(htmTb.headingCell("Relationship", htmTb.LEFT, "10%"));
             ins.append(htmTb.endRow());
             //  End the table for the Insurance heading
             ins.append(htmTb.endTable());
             // Start a division for the details section
-            ins.append("<div style=\"width: 545; height: 44;  overflow: auto; text-align: left;\">\n");
-            // List the symptoms
+            ins.append("<div style=\"width: 545; height: 64;  overflow: auto; text-align: left;\">\n");
             ins.append(htmTb.startTable("545", "0"));
-            ins.append(getList(onClickLocationA, onClickLocationB, linkClass));
+            if(!cashOnly) { ins.append(getList(onClickLocationA, onClickLocationB, linkClass)); }
             ins.append(htmTb.endTable());
             // End the division
             ins.append("</div>\n");
@@ -334,7 +357,8 @@ public class PatientInsurance extends MedicalResultSet {
     
     public String getPatientInsuranceList(int patientId, String onClickLocationA, String onClickLocationB, String linkClass) throws Exception {
         StringBuffer piList = new StringBuffer();
-        rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+//        rs = io.opnRS("select * from insurancedisplay where patientid=" + patientId + " order by primaryprovider");
+        rs = io.opnRS("CALL rwcatalog.prInsuranceDisplay('" + io.getLibraryName() + "'," + patientId + ")");
         piList.append(htmTb.startTable("100%","0"));
         piList.append(getList(onClickLocationA, onClickLocationB, linkClass));
         piList.append(htmTb.endTable());
@@ -344,6 +368,8 @@ public class PatientInsurance extends MedicalResultSet {
     public String getList(String onClickLocationA, String onClickLocationB, String linkClass) {
         StringBuffer insList = new StringBuffer();
         try {
+            int nameWidth = 200;
+            if(isUseVerifyFlag()) { nameWidth = 150; }
             while (next()) {
                 String link = onClickLocationA + getString("id") + onClickLocationB;
                 insList.append(htmTb.startRow());
@@ -351,12 +377,20 @@ public class PatientInsurance extends MedicalResultSet {
                 if (getInt("primaryprovider") == 1) {
                     primary = "*";
                 }
-                insList.append(htmTb.addCell(primary, htmTb.CENTER, link + linkClass + " width=5%", ""));
-                insList.append(htmTb.addCell(getString("name"), htmTb.LEFT, link + linkClass + " width=35%", ""));
-                insList.append(htmTb.addCell(Format.formatPhone(getString("phonenumber")), htmTb.LEFT, link + linkClass + " width=20%", ""));
-                insList.append(htmTb.addCell(getString("providernumber"), htmTb.LEFT, "width=20%", ""));
-                insList.append(htmTb.addCell(getString("providergroup"), htmTb.LEFT, "width=20%", ""));
-                //            ins.append(htmTb.addCell(getString("relationship"), htmTb.LEFT, "width=10%"));
+                String activeCheckbox = "<input type=\"checkbox\" name=\"active" + getInt("id") + "\" id=\"active" + getInt("id") + "\"  ";
+                String verifiedCheckbox = "<input type=\"checkbox\" name=\"verified" + getInt("id") + "\" id=\"verified" + getInt("id") + "\" ";
+                
+                if(getBoolean("verified")) { verifiedCheckbox += "CHECKED READONLY DISABLED>"; } else { verifiedCheckbox += " style=\"cursor: pointer;\" onClick=\"setInsuranceVerified(" + getString("patientId") + "," + getInt("Id") + ",this)\">"; }
+                if(getBoolean("active")) { activeCheckbox += "CHECKED"; }
+                activeCheckbox += " READONLY DISABLED>";
+                
+                insList.append(htmTb.addCell(primary, htmTb.CENTER, link + linkClass + " width=15px", ""));
+                insList.append(htmTb.addCell(getString("name"), htmTb.LEFT, link + linkClass + " width=" + nameWidth + "px", ""));
+                insList.append(htmTb.addCell(Format.formatPhone(getString("phonenumber")), htmTb.LEFT, " width=75px", ""));
+                insList.append(htmTb.addCell(getString("providernumber"), htmTb.LEFT, "width=100px", ""));
+                insList.append(htmTb.addCell(getString("providergroup"), htmTb.LEFT, "width=100px", ""));
+                insList.append(htmTb.addCell(activeCheckbox, htmTb.CENTER, "width=50px", ""));
+                if(isUseVerifyFlag()) { insList.append(htmTb.addCell(verifiedCheckbox, htmTb.CENTER, "width=50px", "")); }
                 insList.append(htmTb.endRow());
             }
         } catch (SQLException ex) {
@@ -541,5 +575,53 @@ public class PatientInsurance extends MedicalResultSet {
      */
     public void setPreAuthVisits(int preAuthVisits) {
         this.preAuthVisits = preAuthVisits;
+    }
+
+    /**
+     * @return the insuranceTermDate
+     */
+    public String getInsuranceTermDate() {
+        return insuranceTermDate;
+    }
+
+    /**
+     * @param insuranceTermDate the insuranceTermDate to set
+     */
+    public void setInsuranceTermDate(String insuranceTermDate) {
+        this.insuranceTermDate = insuranceTermDate;
+    }
+
+    /**
+     * @return the verified
+     */
+    public boolean isVerified() {
+        return verified;
+    }
+
+    /**
+     * @param verified the verified to set
+     */
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+    
+    private boolean isUseVerifyFlag() {
+
+        boolean flag = false;
+
+            try {
+                if(env == null) {
+                    env = new Environment(this.io);
+                }
+                env.refresh();
+                flag = env.getBoolean("verifyinsurance");
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(PatientInsurance.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(PatientInsurance.class.getName()).log(Level.SEVERE, null, ex);
+            }
+ 
+        return flag;
     }
 }

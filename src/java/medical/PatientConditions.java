@@ -7,6 +7,8 @@ package medical;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import tools.RWConnMgr;
 import tools.RWHtmlTable;
 import tools.RWInputForm;
@@ -32,6 +34,7 @@ public class PatientConditions extends MedicalResultSet {
     private String referringNPI;
     private int providerId;
     private String blanks       = "                    ";
+    public String refreshObject = "patientCondition";
     
     private boolean editMode = false;
 
@@ -113,8 +116,8 @@ public class PatientConditions extends MedicalResultSet {
         cf.append(frm.getInputItem("Description"));
         cf.append(frm.getInputItem("Condition"));
         cf.append(htmTb.endTable());
-        cf.append(frm.button("  save  ", "class=button onclick=\"formObj=document.getElementById('patientCondition'); processForm(this.parentNode,'SAVE');\""));
-        if(this.id !=0 ) { cf.append("&nbsp;&nbsp;&nbsp;" + frm.button("  delete  ", "class=button onclick=\"formObj=document.getElementById('patientCondition'); processForm(this.parentNode,'DELETE',patientCondition);\"")); }
+        cf.append(frm.button("  save  ", "class=button onclick=\"formObj=document.getElementById('patientCondition'); processForm(this.parentNode,'SAVE'," + refreshObject + ");\""));
+        if(this.id !=0 ) { cf.append("&nbsp;&nbsp;&nbsp;" + frm.button("  delete  ", "class=button onclick=\"formObj=document.getElementById('patientCondition'); processForm(this.parentNode,'DELETE'," + refreshObject + ");\"")); }
         cf.append("&nbsp;&nbsp;&nbsp;" + frm.button("  cancel  ", "class=button onclick='javascript:showHide(txtHint,\"HIDE\");'"));
         cf.append(frm.showHiddenFields());
         cf.append(frm.endForm());
@@ -128,7 +131,7 @@ public class PatientConditions extends MedicalResultSet {
         String editScript="";
         setId(id);
 
-        if(this.isEditMode()) { editScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'patientcondition.jsp'," + this.id + "," + this.patientId + ",txtHint)"; }
+        if(this.isEditMode()) { editScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'ajax/patientcondition.jsp'," + this.id + "," + this.patientId + ",txtHint)"; }
         
         if(this.id != 0) {
             c.append(htmTb.startTable());
@@ -167,6 +170,59 @@ public class PatientConditions extends MedicalResultSet {
         
         return c.toString();
     }
+
+    
+    public String getConditionForHover(int id) {
+        RWHtmlTable htmTb = new RWHtmlTable ("100%", "0");
+        StringBuffer c=new StringBuffer();
+        String editScript="";
+        setId(id);
+
+        if(this.id != 0) {
+            try {
+                Symptoms s = new Symptoms(io);
+                
+                c.append(htmTb.startTable());
+                c.append(htmTb.startRow());
+                c.append(htmTb.addCell("<b>From:</b>", "style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.addCell(Format.formatDate(this.fromDate,"MM/dd/yy"), "style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.addCell("<b>To:</b>", "style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.addCell(Format.formatDate(this.toDate,"MM/dd/yy"), "style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.endRow());
+                c.append(htmTb.startRow());
+                c.append(htmTb.addCell("<b>Type:</b> <span id=listType>" + this.getConditionTypeName() + "</span>", "colspan=4 style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.endRow());
+                c.append(htmTb.startRow());
+                c.append(htmTb.addCell("<b>Description:</b> <span id=listDescription>" + this.description + "</span>", "colspan=4 style='font-size: 12px; color: #030089;'"));
+                c.append(htmTb.endRow());
+                c.append(htmTb.startRow());
+                c.append(htmTb.addCell("<div id=listCondition style='height: 80; overflow: auto; font-size: 12px; color: #030089;'>" + this.condition + "</div>", "colspan=4"));
+                c.append(htmTb.endRow());
+                c.append(htmTb.endTable());
+                c.append(s.getConditionSymptomsForHover(this.id));
+            } catch (Exception ex) {
+                Logger.getLogger(PatientConditions.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            c.append(htmTb.startTable());
+            c.append(htmTb.startRow());
+            c.append(htmTb.addCell("<b>From:</b>", "style='font-size: 12px; color: #030089;'"));
+            c.append(htmTb.addCell("", "style='font-size: 12px; color: #030089;'"));
+            c.append(htmTb.addCell("<b>To:</b>", "style='font-size: 12px; color: #030089;'"));
+            c.append(htmTb.addCell("", "style='font-size: 12px; color: #030089;'"));
+            c.append(htmTb.endRow());
+            c.append(htmTb.startRow());
+            c.append(htmTb.addCell("<b>Description:</b> <div id=listDescription></div>", "colspan=4 style='font-size: 12px; color: #030089;'"));
+            c.append(htmTb.endRow());
+            c.append(htmTb.startRow());
+            c.append(htmTb.addCell("<div id=listCondition style='height: 80; overflow: auto; font-size: 12px; color: #030089;'></div>", "colspan=4"));
+            c.append(htmTb.endRow());
+            c.append(htmTb.endTable());
+        }
+        
+        return c.toString();
+    }
+    
     
     public String getConditionList(boolean previousOnly) {
         StringBuffer conditionList = new StringBuffer();
@@ -185,10 +241,11 @@ public class PatientConditions extends MedicalResultSet {
 
             while(lRs.next()) {
                 if(this.isEditMode()) { 
-                    setScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=\"replaceContents(event,'patientcondition.jsp?set=Y'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",patientCondition); refreshSymptomList(" + lRs.getString("id") + ");\"";
-                    editScript=" onMouseOut=showHide(txtHint,'HIDE') onMouseOver=showItem(event,'patientcondition.jsp?hint=Y'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",txtHint)";
+                    setScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=\"replaceContents(event,'ajax/patientcondition.jsp?set=Y'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",patientCondition); refreshSymptomList(" + lRs.getString("id") + ");\"";
+                    editScript=" onMouseOut=showHide(txtHint,'HIDE') onMouseOver=showItem(event,'ajax/patientcondition.jsp?hint=Y'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",txtHint)";
                 } else {
-                    editScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'patientcondition.jsp'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",txtHint)";
+                    editScript=" onMouseOut=showHide(txtHint,'HIDE') onMouseOver=showItem(event,'ajax/patientcondition.jsp?hint=Y'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",txtHint)";
+//                    editScript=" onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'ajax/patientcondition.jsp'," + lRs.getString("id") + "," + lRs.getString("patientid") + ",txtHint)";
                 }
                 conditionList.append(htmTb.startRow());
                 conditionList.append(htmTb.addCell(Format.formatDate(lRs.getString("fromdate"), "MM/yy") + "-" + Format.formatDate(lRs.getString("todate"), "MM/yy"), "width=75 style='font-size: 12px; color: #030089;' " + setScript));

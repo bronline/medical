@@ -366,7 +366,8 @@ public class Visit extends MedicalResultSet {
 
     // Display the heading
         pc.append(htmTb.startRow());
-        pc.append(htmTb.headingCell("Current Condition", "onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'patientcondition.jsp',0," + this.patientId + ",txtHint)"));
+//        pc.append(htmTb.headingCell("Current Condition", "onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'patientcondition.jsp',0," + this.patientId + ",txtHint)"));
+        pc.append(htmTb.headingCell("Condition for this Visit", ""));
         pc.append(htmTb.endRow());
         
         pc.append(htmTb.startCell(htmTb.LEFT));
@@ -379,12 +380,6 @@ public class Visit extends MedicalResultSet {
     }
     
     public String getVisitCondition() throws Exception {
-//        if(condition == null) { condition = new PatientConditions(this.io,this.conditionId); }
-//        if(this.conditionId == 0) {
-//            this.conditionId=condition.getCurrentCondition(""+this.patientId);
-//        } else {
-//            this.conditionId=checkConditionId();
-//        }
 
         getCurrentCondition();
 

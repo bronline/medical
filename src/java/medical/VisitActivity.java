@@ -1043,7 +1043,8 @@ public class VisitActivity extends MedicalResultSet
         headerCell.append(htmTb.startRow());
 //        headerCell.append(htmTb.addCell("&nbsp;&nbsp;&nbsp;Doctor: " + frm.comboBox(rscRs,"currentresource","id",false,"1",null,""+resourceId,"onChange=\"window.location.href='?currentresource=' + this.value \" class=cBoxText")," width=233"));
         headerCell.append(htmTb.addCell("&nbsp;&nbsp;&nbsp;Doctor: " + frm.comboBox(rscRs,"currentresource","id",false,"1",null,""+resourceId,"onChange=\"changeResource(this.value," + _visit.getId() + ")\" class=cBoxText")," width=233"));
-        headerCell.append(htmTb.addCell(getVisitInfo(), htmTb.CENTER, "width=300"));
+        headerCell.append(htmTb.addCell("<input type=button value='New Condition' class=button onClick=newCondition(" + _visit.getId() + ")>", "width=100"));
+        headerCell.append(htmTb.addCell(getVisitInfo(), htmTb.CENTER, "width=200"));
         headerCell.append(htmTb.addCell("<input type=button value='payment' class=button onClick=getPayment(" + _visit.getId() + ")>", "width=100"));
         headerCell.append(htmTb.addCell("<input type=button value='duplicate' class=button onClick=duplicateVisit(" + _visit.getId() + ")>", "width=100"));
         headerCell.append(htmTb.addCell("<input type=button value='clear visit' class=button onClick=undoVisit(" + _visit.getId() + ")>", "width=100"));

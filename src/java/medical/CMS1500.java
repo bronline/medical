@@ -91,6 +91,10 @@ public class CMS1500 extends Document {
     private Patient patient;
 
     public boolean allowMultipleDatesPerPage = false;
+    
+    private String formType;
+    private boolean acaForm = false;
+    public String box22;
 
     /** Creates a new instance of CMS1500 */
     public CMS1500() {
@@ -347,6 +351,7 @@ public class CMS1500 extends Document {
         doBox14();
         doBox19(patientId);
         doBox20();
+        doBox22();
         doBox23();
         doBox25();
         doBox27();
@@ -642,8 +647,10 @@ public class CMS1500 extends Document {
     
         try {
             stm.setString(1, chargeId);
+            int totalPossibleCodes = 4;
+            if(isACAForm()) { totalPossibleCodes=12; }
             ResultSet tmpCodes=stm.executeQuery();
-            while(tmpCodes.next() && numberOfCodesFound<4) {
+            while(tmpCodes.next() && numberOfCodesFound<totalPossibleCodes) {
                 if(diagnosisCodes.containsKey(tmpCodes.getString("code"))) {
                     String codeId=(String)diagnosisCodes.get(tmpCodes.getString("code"));
                     if(codeList.indexOf(codeId)<0) {
@@ -664,11 +671,25 @@ public class CMS1500 extends Document {
         codeList="";
         for(int x=0;x<codes.length;x++) { codeList += codes[x]; }
 
-        if(codeList.equals("")) {
+        if(codeList.equals("") && !isACAForm()) {
             if(diagnosisCodes.size()>=4) { codeList="1234"; }
             else if(diagnosisCodes.size()==3) { codeList="123"; }
             else if(diagnosisCodes.size()==2) { codeList="12"; }
             else { codeList="1"; }
+        } else if(codeList.equals("") && isACAForm()) {
+//            if(diagnosisCodes.size()>=12) { codeList="ABCDEFGHIJKL"; }
+//            else if(diagnosisCodes.size()==11) { codeList="ABCDEFGHIJK"; }
+//            else if(diagnosisCodes.size()==10) { codeList="ABCDEFGHIJ"; }
+//            else if(diagnosisCodes.size()==9) { codeList="ABCDEFGHI"; }
+//            else if(diagnosisCodes.size()==8) { codeList="ABCDEFGH"; }
+//            else if(diagnosisCodes.size()==7) { codeList="ABCDEFG"; }
+//            else if(diagnosisCodes.size()==6) { codeList="ABCDEF"; }
+//            else if(diagnosisCodes.size()==5) { codeList="ABCDE"; }
+            if(diagnosisCodes.size()>=5) { codeList="ABCDE"; }
+            else if(diagnosisCodes.size()==4) { codeList="ABCD"; }
+            else if(diagnosisCodes.size()==3) { codeList="ABC"; }
+            else if(diagnosisCodes.size()==2) { codeList="AB"; }
+            else { codeList="A"; }
         }
         
         return codeList;
@@ -946,7 +967,7 @@ public class CMS1500 extends Document {
 
             String sqlStatement="SELECT s.diagnosisid, c.code FROM patientsymptoms s " +
                             "join diagnosiscodes c on s.diagnosisid=c.id " +
-                            "where s.conditionid=" + getConditionId() + " and c.code not in (";
+                            "where s.conditionid=" + getConditionId();
 //                            " order by s.sequence";
 
             boolean firstTime=true;
@@ -955,6 +976,8 @@ public class CMS1500 extends Document {
                 codeList.append("'" + (String)e.nextElement() + "'");
                 firstTime=false;
             }
+            
+            if(!firstTime) { sqlStatement += " and c.code not in ("; }
 
             codeList.append(") order by sequence");
 
@@ -1003,6 +1026,10 @@ public class CMS1500 extends Document {
     
     private void doBox20() {
         setDocumentFieldValue("field20n", "X");
+    }
+    
+    private void doBox22() {
+        if(box22 != null) { setDocumentFieldValue("22code", box22); }
     }
     
     private void doBox23() {
@@ -1155,17 +1182,19 @@ public class CMS1500 extends Document {
             box33Resource.beforeFirst();
             if(box33Resource.next()) {
                 String box33a = box33Resource.getString("box33a");
+                String box33b = box33Resource.getString("grp");
                 if(box33a == null || box33a.trim().equals("")) { box33Resource.getString("pin"); }
 
                 setDocumentFieldValue("supplier", box33Resource.getString("name"));
                 setDocumentFieldValue("practicenpi", box33a);
+                setDocumentFieldValue("grp", box33b);
             }
 
             providerRs.beforeFirst();
             if(providerRs.next()) {
-                if(providerRs.getString("practice") != null && !providerRs.getString("practice").trim().equals("")) { setDocumentFieldValue("providernpi", providerRs.getString("practice")); }
+                if(providerRs.getString("practice") != null && !providerRs.getString("practice").trim().equals("")) { setDocumentFieldValue("grp", providerRs.getString("practice")); }
                 if(providerRs.getString("grouppractice") != null && !providerRs.getString("grouppractice").trim().equals("")) { setDocumentFieldValue("practicenpi", providerRs.getString("grouppractice")); }
-                if(providerRs.getString("grouptaxid") != null && !providerRs.getString("grouptaxid").trim().equals("")) { setDocumentFieldValue("taxid", providerRs.getString("grouptaxid")); }
+                if(providerRs.getString("grouptaxid") != null && !providerRs.getString("grouptaxid").trim().equals("")) { setDocumentFieldValue("taxid", providerRs.getString("grouptaxid")); }                
             }
 
             box33Resource.close();
@@ -1562,14 +1591,19 @@ public class CMS1500 extends Document {
     }
 
     public boolean isACAForm() {
-        boolean acaForm = false;
-        try {
-            ResultSet acaFormRs = io.opnRS("select distinct document, ACAForm from rwcatalog.documentmap where document='" + getMapDocument() + "'");
-            if(acaFormRs.next()) { acaForm = acaFormRs.getBoolean("ACAForm"); }
-            acaFormRs.close();
-            acaFormRs=null;
-        } catch (Exception ex) {
-            Logger.getLogger(CMS1500.class.getName()).log(Level.SEVERE, null, ex);
+        if(formType == null) {
+            formType = "standard";
+            try {
+                ResultSet acaFormRs = io.opnRS("select distinct document, ACAForm from rwcatalog.documentmap where document='" + getMapDocument() + "' LIMIT 1");
+                if(acaFormRs.next()) { 
+                    acaForm = acaFormRs.getBoolean("ACAForm");
+                    formType = "ACAForm";
+                }
+                acaFormRs.close();
+                acaFormRs=null;
+            } catch (Exception ex) {
+                Logger.getLogger(CMS1500.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return acaForm;
     }

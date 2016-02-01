@@ -116,6 +116,52 @@ public class Symptoms extends MedicalResultSet {
 
         return sy.toString();
     }
+    
+
+    public String getConditionSymptomsForHover(int conditionId) throws Exception {
+        int patientId=0;
+        ResultSet condRs=io.opnRS("select patientid from patientconditions where id=" + conditionId);
+        if(condRs.next()) { patientId=condRs.getInt("patientid"); }
+        condRs.close();
+
+        rs = io.opnRS("select a.id, sequence, concat(code, ' - ', description) as description, symptom from patientsymptoms a join diagnosiscodes b on a.diagnosisid=b.id where conditionid=" + conditionId + " order by sequence");
+        sy.delete(0, sy.length());
+        sy.append("<div style='width: 100%;'>");
+        sy.append(htmTb.startTable("100%", "0"));
+
+        String onClickLocationA ="";
+         String linkClass = " style=\"cursor: pointer; color: #030089;\"";
+
+        sy.append(htmTb.roundedTop(1,"","#030089",""));
+
+        // Display the heading
+        sy.append(htmTb.startRow());
+//        sy.append(htmTb.headingCell("Diagnosis", "style=\"cursor: pointer\" " + onClickLocationA + "0&patientid=" + patientId + onClickLocationB));
+        sy.append(htmTb.headingCell("Diagnosis", "" ));
+        sy.append(htmTb.endRow());
+    //  End the table for the comments heading
+        sy.append(htmTb.endTable());
+
+    // Start a division for the symptoms section
+        sy.append("<div style=\"width: 100%; height: 55px; text-align: left;\">\n");
+
+    // List the symptoms
+        sy.append(htmTb.startTable("94%", "0"));
+
+        while(next()) {
+//            String link = onClickLocationA + rs.getString("id") + onClickLocationB;
+            String link = onClickLocationA;
+            sy.append(htmTb.startRow());
+            sy.append(htmTb.addCell(getString("description").trim(), htmTb.LEFT, link + linkClass, ""));
+//            sy.append(htmTb.addCell(getString("symptom"), htmTb.LEFT, link + linkClass, ""));
+            sy.append(htmTb.endRow());
+        }
+        sy.append(htmTb.endTable());
+    // End the division
+        sy.append("</div></div>\n");
+
+        return sy.toString();
+    }    
 
     public String getConditionSymptoms(String conditionId) {
         try {

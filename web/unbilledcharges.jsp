@@ -94,7 +94,7 @@ try {
             "where " +
             "providers.name is not null and " +
             "providers.reserved=0 and " +
-            "batchcharges.id is null and " +
+            "(batchcharges.id is null or not complete) and " +
             "((charges.billinsurance=0 and items.billinsurance=1) or (charges.billinsurance=2)) " +
             "group by " +
             "providers.id, " +

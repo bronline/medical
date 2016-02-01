@@ -31,14 +31,13 @@ public class UpdateChiroDatabases {
             String mySql = "select * from userinfo " + 
                     "left join userroles on userinfo.id=userroles.rolprf " +
                     "left join roles on roles.id=userroles.role " +
-                    "where roles.role in('MEDICAL','BROS2') and secactv=1 order by secprf";
-            RWConnMgr chiroIo = new RWConnMgr(databaseUsersLocation, "chiro_site", "chiro_site", "root", RWConnMgr.MYSQL);
+                    "where roles.role in('MEDICAL','BROS2') and secprf='vmalchar' order by secprf";
+            RWConnMgr chiroIo = new RWConnMgr(databaseUsersLocation, "chiro_site", "rwtools", "rwtools", RWConnMgr.MYSQL);
             ResultSet userRs = chiroIo.opnRS(mySql);
             while (userRs.next()) {
                 String databaseName = userRs.getString("secprf");
                 System.out.println("Now Checking " + databaseName);
                 DBCompare dbCompare = new DBCompare();
-                //            if(databaseName.toLowerCase().equals("jmaskaly")) {
                 try {
                     RWConnMgr fromIo = new RWConnMgr(sourceDatabaseLocation, sourceDatabaseName, sourceDatabaseUser, sourceDatabasePassword, RWConnMgr.MYSQL);
                     RWConnMgr toIo = new RWConnMgr(databaseLocation, databaseName, "rwtools", "rwtools", RWConnMgr.MYSQL);
@@ -51,7 +50,6 @@ public class UpdateChiroDatabases {
                 }
                 System.out.println("");
                 System.out.println("");
-                //            }
             }
             userRs.close();
         } catch (Exception ex) {

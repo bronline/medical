@@ -186,7 +186,7 @@ public class Patient extends MedicalResultSet {
 //            md.append(htmTb.startRow());
             frm.setUseExternalForm(false);
             frm.formItemOnOneRow = false;
-            md.append(htmTb.addCell("<table><tr><td colspan=4>" + getIndicators() + "</td></tr><tr>" +  frm.getInputItem("active") +  frm.getInputItem("resourceid") + "</tr></table>", "width=270"));
+            md.append(htmTb.addCell("<table><tr><td colspan=4>" + getIndicators() + "</td></tr><tr><td><div><b>Active:</b> " +  frm.checkBox(getBoolean("active"), "", "active") + "<br/><b>Cash Only:</b> " + frm.checkBox(getBoolean("cashonly"), "", "cashonly") + "</div></td>" +  frm.getInputItem("resourceid") + "</tr></table>", "width=270"));
             frm.setUseExternalForm(true);
 //            md.append(htmTb.addCell(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, getAccountInfo()), "width=560 colspan=2"));
             md.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "accountInfoBubble", "580", "30", "#cccccc", getAccountInfo()),htmTb.RIGHT, "width=590 colspan=2"));
@@ -195,7 +195,7 @@ public class Patient extends MedicalResultSet {
             frm.setUseExternalForm(false);
             frm.formItemOnOneRow = false;
             md.append(htmTb.startRow());
-            md.append(htmTb.addCell("<table><tr>" +  frm.getInputItem("active") +  frm.getInputItem("resourceid") + "</tr></table>"));
+            md.append(htmTb.addCell("<table><tr>" +  frm.getInputItem("active") + frm.getInputItem("cashonly") + frm.getInputItem("resourceid") + "</tr></table>"));
             frm.setUseExternalForm(true);
 //            md.append(htmTb.endRow());
         }
@@ -277,7 +277,7 @@ public class Patient extends MedicalResultSet {
 
         md.append(htmTb.startTable("280"));
         md.append(htmTb.startRow("height=30"));
-
+        
         if(editForm) {
             md.append(htmTb.startTable("210"));
             md.append(htmTb.startRow());
@@ -412,13 +412,13 @@ public class Patient extends MedicalResultSet {
         htmTb.setWidth("550");
 
         ii.append(htmTb.startTable());
+        //ii.append(htmTb.startRow());
+        //ii.append(htmTb.addCell(getInsuranceActiveInfo()));
+        //ii.append(htmTb.endRow());
         ii.append(htmTb.startRow());
-        ii.append(htmTb.addCell(getInsuranceActiveInfo()));
-        ii.append(htmTb.endRow());
-        ii.append(htmTb.startRow());
-        ii.append(htmTb.startCell(htmTb.LEFT));
+        ii.append(htmTb.startCell(htmTb.LEFT, "style=\"padding-top: 5px;\""));
 //        ii.append(htmTb.getFrame(htmTb.BOTH, "", "#cccccc", 3, patientInsurance.getPatientInsuranceList(Integer.parseInt(id))));
-        ii.append(InfoBubble.getBubble("roundrect", "rightPaneBubble", "545", "70", "#cccccc", patientInsurance.getPatientInsuranceList(Integer.parseInt(id))));
+        ii.append(InfoBubble.getBubble("roundrect", "rightPaneBubble", "545", "85", "#cccccc", patientInsurance.getPatientInsuranceList(Integer.parseInt(id))));
         ii.append(htmTb.endCell());
         ii.append(htmTb.endRow());
 //        ii.append(frm.getInputItem("providerid"));
@@ -443,11 +443,12 @@ public class Patient extends MedicalResultSet {
     }
 
     public String getPatientCondition() throws Exception {
+
         beforeFirst();
         if(condition == null || condition.getPatientId()!=Integer.parseInt(id)) { condition=new PatientConditions(io,"0"); symptoms=new Symptoms(io); }
         if (!next() || id.equals("0")) {return "";}
         StringBuffer pc = new StringBuffer();
-        condition.setEditMode(true);
+        condition.setEditMode(false);
         
         pc.append("<div id=patientConditionBubble style='width: 100%; height: 140;'>");
         pc.append(frm.startForm());
@@ -456,17 +457,18 @@ public class Patient extends MedicalResultSet {
 
     // Display the heading
         pc.append(htmTb.startRow());
-        pc.append(htmTb.headingCell("Current Condition", "onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'patientcondition.jsp',0," + this.id + ",txtHint)"));
+        pc.append(htmTb.headingCell("Current Condition", "onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'ajax/patientcondition.jsp?xrays=Y',0," + this.id + ",txtHint)"));
         pc.append(htmTb.endRow());
         
         pc.append(htmTb.startRow());
-        pc.append(htmTb.addCell("<div id=patientCondition style='height: 100;'>" + condition.getCondition(condition.getCurrentCondition(this.id)) + "</div>"));
+        pc.append(htmTb.addCell("<div id=\"xrayPatientCondition\" style='height: 100; cursor: pointer;' onClick=showInputForm(event,'ajax/patientcondition.jsp?xrays=Y'," + condition.getCurrentCondition(this.id) + "," + this.id + ",txtHint)>" + condition.getCondition(condition.getCurrentCondition(this.id)) + "</div>"));
         pc.append(htmTb.endRow());
  
         pc.append(htmTb.endTable());
         pc.append("</div></div>");
 
-        return pc.toString();       
+        return pc.toString();
+
     }
     
     public String getConditions() throws Exception {
@@ -486,7 +488,7 @@ public class Patient extends MedicalResultSet {
         pc.append(htmTb.endRow());
         
         pc.append(htmTb.startRow());
-        pc.append(htmTb.addCell("<div style='height: 80;'>" + condition.getConditionList(id) + "</div>"));
+        pc.append(htmTb.addCell("<div style='height: 80;'>" + condition.getConditionList(true) + "</div>"));
         pc.append(htmTb.endRow());
  
         pc.append(htmTb.endTable());
@@ -924,24 +926,33 @@ public class Patient extends MedicalResultSet {
         boolean copayAsPercent=false;
         String insuranceNotes="";
         String authDate="";
+        String authExpDate="";
+        String preAuthNumber="";
         int preAuthVisits=0;
         int preAuthVisitsUsed = 0;
+        String insuranceBenefitsDate="";
+        int patientInsuranceId=0;
         
         String currentDate = Format.formatDate(new java.util.Date(), "yyyy-MM-dd");
 
-        ResultSet insRs=io.opnRS("SELECT providerid, "
+        ResultSet insRs=io.opnRS("SELECT patientinsurance.id, providerid, "
                                 + "ifnull(providers.name,'Cash') as payerName, "
                                 + "patientinsurance.deductable, "
                                 + "patientinsurance.copayamount, "
                                 + "insurancevisits, "
+                                + "insurancebenefitsdate, "
+                                + "insurancetermdate, "
                                 + "patientinsurance.copayaspercent, "
-                                + "IFNULL(patientinsurance.notes,'') as notes, patientinsurance.effectivedate," 
+                                + "IFNULL(patientinsurance.notes,'') as notes, "
+                                + "patientinsurance.referencenumber, "
+                                + "patientinsurance.effectivedate, " 
                                 + "patientinsurance.expirationdate," 
                                 + "preauthvisits "
                             + "FROM patientinsurance "
                             + "left join providers on providers.id=patientinsurance.providerid "
                             + "where primaryprovider and active and patientId=" + this.id);
-        if(insRs.next()) {
+        if(insRs.next() && !getBoolean("cashonly")) {
+            patientInsuranceId=insRs.getInt("id");
             payerId=insRs.getString("providerid");
             payerName=insRs.getString("payerName");
             copayAmount=insRs.getDouble("copayamount");
@@ -949,8 +960,11 @@ public class Patient extends MedicalResultSet {
             visitsAllowed=insRs.getInt("insurancevisits");
             copayAsPercent=insRs.getBoolean("copayaspercent");
             insuranceNotes=insRs.getString("notes");
-            if(!insRs.getString("effectivedate").equals("0001-01-01") && !insRs.getString("expirationdate").equals("0001-01-01")) { authDate = insRs.getString("expirationdate"); }
+            insuranceBenefitsDate = insRs.getString("insurancebenefitsdate");
+            if(!insRs.getString("effectivedate").equals("0001-01-01") && !insRs.getString("expirationdate").equals("0001-01-01")) { authDate = insRs.getString("effectivedate"); authExpDate = insRs.getString("expirationdate"); }
+            if(insRs.getString("effectivedate").equals("1900-01-01") || insRs.getString("expirationdate").equals("1900-01-01")) { authDate = ""; }
             preAuthVisits=insRs.getInt("preauthvisits");
+            preAuthNumber=insRs.getString("referencenumber");
         }
         insRs.close();
         insRs=null;
@@ -1005,31 +1019,19 @@ public class Patient extends MedicalResultSet {
             ci.append(htmTb.endRow());            
 //            ci.append(htmTb.startRow());
 
-            ResultSet vuRs=io.opnRS("select count(*) from visits where patientid=" + id + " and `date`>=(SELECT insuranceeffective FROM patientinsurance where patientid=" + id + " and primaryprovider and active order by id desc limit 1) ");
-            if(vuRs.next()) { visitsUsed=vuRs.getInt(1); }
+            ResultSet vuRs=io.opnRS("call rwcatalog.prGetVisitsUsed('" + io.getLibraryName() + "'," + this.id + "," + payerId + ",'" + insuranceBenefitsDate + "','" + currentDate + "')");
+            if(vuRs.next()) { visitsUsed=vuRs.getInt("visitcount"); }
             vuRs.close();
             vuRs = null;
+
+            String payerColors="style=\"font-size: 12px; background-color: #cccccc; color: #000000;";
+            if(visitsUsed>=visitsAllowed && visitsAllowed!=0) { payerColors="style=\"font-size: 12px; background-color: #ce0000; color: #ffffff;"; }
+
+            String onClickAction = " onClick=window.open(\"patientinsurance_d.jsp?id=" + patientInsuranceId +"\",\"Insurance\",\"width=500,height=600,left=50,top=80,toolbar=0,status=0,\"); ";            
+            if(patientInsuranceId==0) { onClickAction=""; payerColors += "\"" ;} else { payerColors += " cursor: pointer;\""; }
             
-            ResultSet avuRs=io.opnRS("select " +
-                                    "  count(*) " +
-                                    "from visits v " +
-                                    "left join patientinsurance pi on pi.patientid=v.patientid " +
-                                    "where" +
-                                    "  v.patientid=" + id + " and " +
-                                    "  `date` between pi.effectivedate and pi.expirationdate and " +
-                                    "  pi.primaryprovider and " +
-                                    "  pi.active " +
-                                    "order by v.id desc limit 1");
-            if(avuRs.next()) { preAuthVisitsUsed=avuRs.getInt(1); }
-            avuRs.close();
-            avuRs = null;
-
-            String payerColors="style=\"font-size: 12px; background-color: #cccccc; color: #000000;\"";
-            if(visitsUsed>=visitsAllowed && visitsAllowed!=0) { payerColors="style=\"font-size: 12px; background-color: #ce0000; color: #ffffff;\""; }
-            if((!authDate.equals("") && (currentDate.compareTo(authDate)>0 || preAuthVisitsUsed>=preAuthVisits))) { payerColors="style=\"font-size: 12px; background-color: #ce0000; color: #ffffff;\""; }
-
             ci.append(htmTb.startRow(payerColors));
-            ci.append(htmTb.addCell("<b>Payer: </b>" + payerName,"colspan=2 " + payerColors));
+            ci.append(htmTb.addCell("<b>Payer: </b>" + payerName,"colspan=2 " + payerColors + onClickAction));
             ci.append(htmTb.endRow());
 
             if(deductableAmount != 0.0) {
@@ -1072,14 +1074,74 @@ public class Patient extends MedicalResultSet {
 
             if(!insuranceNotes.trim().equals("")) {
                 ci.append(htmTb.startRow());
-                ci.append(htmTb.addCell("<b>Notes:</b>", "colspan=2"));
+                ci.append(htmTb.addCell("<b>Notes:</b>", "colspan=2 style=\"padding-top: 5px;\""));
                 ci.append(htmTb.endRow());
 
                 ci.append(htmTb.startRow());
-                ci.append(htmTb.addCell("<div align=\"left\" style=\"width: 100%; height: 60px; overflow: auto;\">" + insuranceNotes + "</div>", "colspan=2"));
+                ci.append(htmTb.addCell("<div align=\"left\" style=\"width: 100%; height: 60px; overflow: auto;\">" + insuranceNotes.replaceAll("\r\n","<br/>") + "</div>", "colspan=2"));
                 ci.append(htmTb.endRow());
             }
+            
+            ResultSet authRs = io.opnRS("SELECT *, providers.name as payername FROM patientinsurance left join providers on providers.id=patientinsurance.providerid where patientid=" + this.id + " and active and referencenumber <> ''");
 
+            if(authRs.next() && !getBoolean("cashonly")) {
+                authRs.beforeFirst();
+                ci.append("<tr style=\"padding-top: 5px;\"><td colspan=2 style=\"padding-top: 10px;\">");
+                ci.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">");
+                ci.append(htmTb.startRow());
+                ci.append(htmTb.addCell("<b>Authorizations</b>", RWHtmlTable.CENTER, "style=\"font-size: 12px;\"" ));
+                ci.append(htmTb.endRow());
+                ci.append(htmTb.endTable());
+
+                ci.append("<div style=\"height: 75px; overflow: auto;\">");
+
+                while(authRs.next()) {
+                    preAuthVisits = authRs.getInt("preauthvisits");
+                    preAuthNumber = authRs.getString("referencenumber");
+                    payerColors = " background-color: #cccccc; color: #000000;";
+
+                    ResultSet avuRs=io.opnRS("call rwcatalog.prGetVisitsUsed('" + io.getLibraryName() + "'," + this.id + "," + authRs.getInt("providerid") + ",'" + authRs.getString("effectivedate") + "','" + authRs.getString("expirationdate") + "')"); 
+                    if(avuRs.next()) { preAuthVisitsUsed=avuRs.getInt("visitcount"); }
+                    avuRs.close();
+                    avuRs = null;
+
+                    if((!authDate.equals("") && preAuthVisitsUsed>=preAuthVisits)) { payerColors="background-color: #ce0000; color: #ffffff;\""; }
+
+                    ci.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"padding-bottom: 17px;\">");
+                    ci.append(htmTb.startRow());
+                    ci.append(htmTb.addCell("<b>Payer: </b>" + authRs.getString("payerName"), "colspan=\"2\" style=\"font-size: 12px;" + payerColors + "\"" ));
+                    ci.append(htmTb.endRow());
+
+                    if(!preAuthNumber.equals("")) {
+                        ci.append(htmTb.startRow());
+                        ci.append(htmTb.addCell("<b> Reference: </b>", "width=\"75%\" " + style));
+                        ci.append(htmTb.addCell("" + preAuthNumber, RWHtmlTable.RIGHT, "width=\"25%\" " + style));
+                        ci.append(htmTb.endRow());
+                    }
+
+                    ci.append(htmTb.startRow());
+                    ci.append(htmTb.addCell("<b> Visits Allowed: </b>", "width=\"75%\" " + style));
+                    ci.append(htmTb.addCell("" + preAuthVisits, RWHtmlTable.RIGHT, "width=\"25%\" " + style));
+                    ci.append(htmTb.endRow());
+
+                    ci.append(htmTb.startRow());
+                    ci.append(htmTb.addCell("<b> Visits Used: </b>", style));
+                    ci.append(htmTb.addCell("" + preAuthVisitsUsed, RWHtmlTable.RIGHT, style));
+                    ci.append(htmTb.endRow());
+
+                    if(preAuthVisitsUsed<preAuthVisits) { visitsRemaining=preAuthVisits-preAuthVisitsUsed; } else { visitsRemaining = 0; }
+
+                    ci.append(htmTb.startRow());
+                    ci.append(htmTb.addCell("<b> Visits Remaining: </b>", style));
+                    ci.append(htmTb.addCell("" + visitsRemaining, RWHtmlTable.RIGHT, style));
+                    ci.append(htmTb.endRow());
+
+                    ci.append("</table>");                
+
+                }
+                ci.append("</div></td></tr>");
+            }
+            
             try {
                 String dedQuery="SELECT YEAR(d.`date`) AS `year`, SUM(amount) AS amount " +
                         "FROM deductables d " +
@@ -1125,7 +1187,7 @@ public class Patient extends MedicalResultSet {
                 ci.append(htmTb.endRow());            
 
                 ci.append(htmTb.startRow());
-                ci.append(htmTb.addCell(condition.getDescription(),"colspan=2 " + style));
+                ci.append(htmTb.addCell(condition.getDescription(),"id=\"patientCondition\" colspan=2 " + style + " color: #2c57a7; font-weight: bold; onMouseOver=this.style.cursor='pointer' onMouseOut=this.style.cursor='normal' onClick=showInputForm(event,'ajax/patientcondition.jsp?mini=Y'," + condition.getId() + "," + this.id + ",txtHint)"));
                 ci.append(htmTb.endRow());
             }
             
@@ -1242,39 +1304,16 @@ public class Patient extends MedicalResultSet {
         pi.append(htmTb.addCell("&nbsp;&nbsp;", "width=10"));
         
         pi.append(htmTb.startCell(htmTb.LEFT, "width=225"));
-/*
-        pi.append(htmTb.startTable("220"));
-        pi.append(htmTb.startRow());
-//        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getSymptoms())));
-        pi.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "symptomsbubble", "100%", "100%", "#cccccc", getSymptoms())));
-        pi.append(htmTb.endRow());
-        pi.append(htmTb.startRow());
-//        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getPatientCondition())));
-        pi.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "conditionbubble", "100%", "100%", "#cccccc", getPatientCondition())));
-        pi.append(htmTb.endRow());
-        pi.append(htmTb.startRow());
-//        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getConditions())));
-        pi.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "conditionsbubble", "100%", "100%", "#cccccc", getConditions())));
-        pi.append(htmTb.endRow());
-        pi.append(htmTb.startRow());
-//        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getXrayFindings())));
-        pi.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "xraysbubble", "100%", "100%", "#cccccc", getXrayFindings())));
-        pi.append(htmTb.endRow());
-        pi.append(htmTb.startRow());
-//        pi.append(htmTb.addCell(htmTb.getFrame("#cccccc", getPatientProblems())));
-        pi.append(htmTb.addCell(InfoBubble.getBubble("roundrect", "problemsbubble", "100%", "100%", "#cccccc", getPatientProblems())));
-        pi.append(htmTb.endRow());
-        pi.append(htmTb.endTable());
-*/
-        pi.append(InfoBubble.getBubble("roundrect", "symptomsbubble", "100%", "100%", "#cccccc", getSymptoms()));
+
+        pi.append(InfoBubble.getBubble("roundrect", "patientsymptomsbubble", "100%", "100%", "#cccccc", getSymptoms()));
         pi.append("<div style=\"height: 3px; width: 100%;\"></div>");
-        pi.append(InfoBubble.getBubble("roundrect", "conditionbubble", "100%", "100%", "#cccccc", getPatientCondition()));
+        pi.append(InfoBubble.getBubble("roundrect", "condition-bubble", "100%", "100%", "#cccccc", getPatientCondition()));
         pi.append("<div style=\"height: 3px; width: 100%;\"></div>");
-        pi.append(InfoBubble.getBubble("roundrect", "conditionsbubble", "100%", "100%", "#cccccc", getConditions()));
+        pi.append(InfoBubble.getBubble("roundrect", "patient-conditions-bubble", "100%", "100%", "#cccccc", getConditions()));
         pi.append("<div style=\"height: 3px; width: 100%;\"></div>");
-        pi.append(InfoBubble.getBubble("roundrect", "xraysbubble", "100%", "100%", "#cccccc", getXrayFindings()));
+        pi.append(InfoBubble.getBubble("roundrect", "xrays-bubble", "100%", "100%", "#cccccc", getXrayFindings()));
         pi.append("<div style=\"height: 3px; width: 100%;\"></div>");
-        pi.append(InfoBubble.getBubble("roundrect", "problemsbubble", "100%", "100%", "#cccccc", getPatientProblems()));
+        pi.append(InfoBubble.getBubble("roundrect", "problems-bubble", "100%", "100%", "#cccccc", getPatientProblems()));
 
         pi.append(htmTb.endCell());
         
@@ -1552,7 +1591,7 @@ public class Patient extends MedicalResultSet {
                 setId(lRs.getInt(1));
                 if(!lRs.next()) {
 //                    String miniContactInfo=htmTb.getFrame(htmTb.BOTH, "", "white", 1, getMiniContactInfo(htmTb));
-                    String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135", "380", "#ffffff", getMiniContactInfo(htmTb));
+                    String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135", "", "#ffffff", getMiniContactInfo(htmTb));
                     lRs.close();
                     lRs=null;
                     return miniContactInfo;
