@@ -21,6 +21,7 @@
     
     lst.setColumnAlignment(2, "CENTER");
     lst.setColumnAlignment(4, "CENTER");
+    lst.
     
     out.print("<div align=\"center\" style=\"width: 100%;\">" + lst.getHtml(request, "CALL rwcatalog.prTopSliderContent('" + io.getLibraryName() + "')", ch) + "</div>");
 %>

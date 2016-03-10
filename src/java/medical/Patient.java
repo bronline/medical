@@ -935,22 +935,7 @@ public class Patient extends MedicalResultSet {
         
         String currentDate = Format.formatDate(new java.util.Date(), "yyyy-MM-dd");
 
-        ResultSet insRs=io.opnRS("SELECT patientinsurance.id, providerid, "
-                                + "ifnull(providers.name,'Cash') as payerName, "
-                                + "patientinsurance.deductable, "
-                                + "patientinsurance.copayamount, "
-                                + "insurancevisits, "
-                                + "insurancebenefitsdate, "
-                                + "insurancetermdate, "
-                                + "patientinsurance.copayaspercent, "
-                                + "IFNULL(patientinsurance.notes,'') as notes, "
-                                + "patientinsurance.referencenumber, "
-                                + "patientinsurance.effectivedate, " 
-                                + "patientinsurance.expirationdate," 
-                                + "preauthvisits "
-                            + "FROM patientinsurance "
-                            + "left join providers on providers.id=patientinsurance.providerid "
-                            + "where primaryprovider and active and patientId=" + this.id);
+        ResultSet insRs=io.opnRS("CALL rwcatalog.prGetPrimaryPayer('" + io.getLibraryName() + "'," + this.id + ")");
         if(insRs.next() && !getBoolean("cashonly")) {
             patientInsuranceId=insRs.getInt("id");
             payerId=insRs.getString("providerid");
@@ -1591,7 +1576,7 @@ public class Patient extends MedicalResultSet {
                 setId(lRs.getInt(1));
                 if(!lRs.next()) {
 //                    String miniContactInfo=htmTb.getFrame(htmTb.BOTH, "", "white", 1, getMiniContactInfo(htmTb));
-                    String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135", "", "#ffffff", getMiniContactInfo(htmTb));
+                    String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135px", "500px", "#ffffff", getMiniContactInfo(htmTb));
                     lRs.close();
                     lRs=null;
                     return miniContactInfo;
@@ -1602,7 +1587,7 @@ public class Patient extends MedicalResultSet {
                         setId(lRs.getInt(1));
                         if(!lRs.next()) {
 //                            String miniContactInfo=htmTb.getFrame(htmTb.BOTH, "", "white", 1, getMiniContactInfo(htmTb));
-                            String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135", "380", "#ffffff", getMiniContactInfo(htmTb));
+                            String miniContactInfo=InfoBubble.getBubble("roundrect", "miniContactBubble", "135px", "500px", "#ffffff", getMiniContactInfo(htmTb));
                             lRs.close();
                             lRs=null;
                             return miniContactInfo;
@@ -1615,7 +1600,7 @@ public class Patient extends MedicalResultSet {
             if (rv=="") {
                 return rv;
             } else {
-                return InfoBubble.getBubble("roundrect", "miniContactBubble", "135", "380", "#ffffff", rv);
+                return InfoBubble.getBubble("roundrect", "miniContactBubble", "135px", "500px", "#ffffff", rv);
 //                return htmTb.getFrame(htmTb.BOTH, "", "white", 1, rv);
 
             }

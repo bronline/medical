@@ -1,7 +1,7 @@
 <style type="text/css">
 #leftSliderWrap {
 	position: absolute;
-	top: 260px;
+	top: 350px;
 	height: 400px;
         z-index: 110;
 }
@@ -27,6 +27,9 @@
 	color: #333333;
 	font-weight: bold;
 	padding: 5px;
+        height: 375px;
+        overflow-y: auto;
+        overflow-x: hidden;
 }
 
 #leftOpenCloseWrapper {
@@ -86,10 +89,27 @@ $(document).ready(function() {
                                 }, 500 );
                         $("#leftMenuImage").html('<img src="images/arrow_left.png" alt="close" height="25px" />');
                         $("#leftCloseId").html("open");
+                        setLeftContent();
                 }
         });
 
 });
+
+function setLeftContent() {
+    if($("#leftSliderContent").html() != '') {
+        $.ajax({
+            type: "POST",
+            url: "ajax/showeligibilityinfo.jsp",
+            success: function(data) {
+                $('#leftSliderContent').html(data);
+            },
+            complete: function(data) {
+
+            }
+
+        });
+    }
+}
 </script>
 
 <div id="leftSliderWrap">
