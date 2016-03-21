@@ -9,6 +9,7 @@
 // Set up the SQL statement
     String myQuery     = "SELECT a.id as patientid, LastName, FirstName, DATE_FORMAT(LastAppt,'%c/%m/%Y') as lastappt, DATE_FORMAT(lastvisit,'%c/%m/%Y') aslastvisit, " +
                         "case when preferredcontact=0 then homephone when preferredcontact=1 then workphone when preferredcontact=2 then cellphone end as phonenumber, " +
+                        "a.email AS Email, " +
                         "case when Active then 'Yes' else 'No' end as Active FROM " +
                         "patients a " +
                         "left join (select patientid, max(date) lastappt from appointments group by patientid) b on a.id=b.patientid " +
@@ -22,24 +23,20 @@
     String title="RecallList";
 
 // Set special attributes on the filtered list object
-    String [] cw       = {"0", "150", "150", "75", "75", "75", "50"};
-    String [] ch       = {"", "Last Name", "First Name", "Last Appt", "Last Visit", "Contact Phone", "Active" };
+    String [] cw       = {"0", "100", "100", "75", "75", "100", "200", "75"};
+    String [] ch       = {"", "Last Name", "First Name", "Last Appt", "Last Visit", "Contact Phone", "Email", "Active" };
 
     lst.setColumnWidth(cw);
-    lst.setTableWidth("600");
+    lst.setTableWidth("800");
     lst.setTableBorder("0");
     lst.setCellPadding("3");
-//    lst.setColumnFormat(4,"(###)-###-####");
+    lst.setColumnFormat(5,"(###)-###-####");
     lst.setAlternatingRowColors("#ffffff", "#cccccc");
     lst.setUseCatalog(true);
     lst.setDivHeight(400);
 
     lst.setUrlField(0);
-//    lst.setOnClickAction("window.open");
-//    lst.setOnClickOption("\"" + title + "\",\"width=500,height=200,scrollbars=no,left=100,top=100,\"");
-//    lst.setOnClickStyle("style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");
-//    lst.setColumnUrl(1, "comments_d.jsp?type=4&date=" + Format.formatDate(new java.util.Date(),"yyyy-MM-dd"));
-//    lst.setColumnUrl(2, "comments_d.jsp?type=4&date=" + Format.formatDate(new java.util.Date(),"yyyy-MM-dd"));
+
     
     lst.setOnClickAction(1, "javascript:enableMouseOut=false;ajaxComplete=false;showItem(event,'comments_d_new.jsp?type=4&date=" + Format.formatDate(new java.util.Date(),"yyyy-MM-dd") + "',0,##idColumn##,txtHint) style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");
     lst.setOnClickAction(2, "javascript:enableMouseOut=false;ajaxComplete=false;showItem(event,'comments_d_new.jsp?type=4&date=" + Format.formatDate(new java.util.Date(),"yyyy-MM-dd") + "',0,##idColumn##,txtHint) style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");

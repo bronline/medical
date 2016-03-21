@@ -10,8 +10,8 @@
 	position: absolute;
 	background-color: #cccccc;
 	height: 400px;
-	width: 600px;
-	margin-left: -608px;
+	width: 1000px;
+	margin-left: -1008px;
 	float: right;
 	border-top-right-radius: 7px;
 /*	border-bottom-right-radius: 7px;  */
@@ -27,7 +27,7 @@
 	color: #333333;
 	font-weight: bold;
 	padding: 5px;
-        height: 375px;
+        height: 350px;
         overflow-y: auto;
         overflow-x: hidden;
 }
@@ -36,14 +36,14 @@
 	position: absolute;
 	width: 30px;
 	height: 400px;
-	margin-left: 600px;
+	margin-left: 1000px;
 	background-color: transparent;
 }
 
 #leftOpenCloseTab {
 	position: absolute;
 	margin-top: 299px;
-	margin-left: 600px;
+	margin-left: 1000px;
 	height: 100px;
 	width: 30px;
 	background-color: #cccccc;
@@ -56,7 +56,7 @@
 
 #leftOpenCloseWrap {
 	position: absolute;
-	margin-left: 605px;
+	margin-left: 1005px;
 	margin-top: 340px;
 }
 
@@ -73,43 +73,57 @@ border: 0;
 </style>
 
 <script type="text/javascript">
-$(document).ready(function() {
+    $(document).ready(function() {
 
-        $(".leftMenuAction").click( function() {
-                if ($("#leftCloseId").html()=="open") {
-                        $("#leftSlider").animate({
-                                marginLeft: "-608px"
-                                }, 500 );
-                        $("#leftMenuImage").html('<img src="images/arrow_right.png" alt="open" height="25px"/>');
-                        $("#leftCloseId").html("");
+            $(".leftMenuAction").click( function() {
+                    if ($("#leftCloseId").html()=="open") {
+                            $("#leftSlider").animate({
+                                    marginLeft: "-1008px"
+                                    }, 500 );
+                            $("#leftMenuImage").html('<img src="images/arrow_right.png" alt="open" height="25px"/>');
+                            $("#leftCloseId").html("");
 
-                } else {
-                        $("#leftSlider").animate({
-                                marginLeft: "-8px"
-                                }, 500 );
-                        $("#leftMenuImage").html('<img src="images/arrow_left.png" alt="close" height="25px" />');
-                        $("#leftCloseId").html("open");
-                        setLeftContent();
+                    } else {
+                            $("#leftSlider").animate({
+                                    marginLeft: "-8px"
+                                    }, 500 );
+                            $("#leftMenuImage").html('<img src="images/arrow_left.png" alt="close" height="25px" />');
+                            $("#leftCloseId").html("open");
+                            setLeftContent();
+                    }
+            });
+
+    });
+
+    function setLeftContent() {
+        if($("#leftSliderContent").html() != '') {
+            $.ajax({
+                type: "POST",
+                url: "ajax/showeligibilityinfo.jsp",
+                success: function(data) {
+                    $('#leftSliderContent').html(data);
+                },
+                complete: function(data) {
+
                 }
-        });
 
-});
+            });
+        }
+}
 
-function setLeftContent() {
-    if($("#leftSliderContent").html() != '') {
+    function checkEligibility(id) {
+        var url="ajax/geteligibility.jsp?patientInsuranceId="+id+"&sid="+Math.random();
+
         $.ajax({
-            type: "POST",
-            url: "ajax/showeligibilityinfo.jsp",
-            success: function(data) {
-                $('#leftSliderContent').html(data);
+            url: url,
+            success: function(data){
+                setLeftContent();
             },
-            complete: function(data) {
-
+            error: function() {
+                alert("There was a problem processing the request");
             }
-
         });
     }
-}
 </script>
 
 <div id="leftSliderWrap">

@@ -30,27 +30,33 @@
 
 // Set up the SQL statement
     startDate=tools.utils.Format.formatDate(startDate, "yyyy-MM-dd");
-    String myQuery     = "select a.id as patientid, ifnull(r.name,'*Unassigned') as Provider, a.LastName, a.FirstName, b.date as Date, c.type as Type from patients a left join resources r on r.id=a.resourceid join appointmentsmissed b on a.id=b.patientid join appointmenttypes c on b.type=c.id where date >= '" + startDate + "' order by 2,3,4,5";
+    String myQuery     = "select a.id as patientid, ifnull(r.name,'*Unassigned') as Provider, a.LastName AS `Last Name`, a.FirstName AS `First Name`, " +
+                         "b.date as Date, c.type as Type, case when preferredcontact=0 then homephone when preferredcontact=1 then workphone when preferredcontact=2 then cellphone end as `Contact Number`, " +
+                         "a.email AS Email " +
+                         "from patients a " +
+                         "left join resources r on r.id=a.resourceid " +
+                         "join appointmentsmissed b on a.id=b.patientid " +
+                         "left join (select patientid, max(date) lastappt from appointments group by patientid) la on a.id=la.patientid " +
+                         "join appointmenttypes c on b.type=c.id " +
+                         "where date >= '" + startDate + "' " +
+                         "AND lastappt < current_date " +
+                         "order by 2,3,4,5";
 
 // Create an RWFiltered List object
     RWFilteredList lst = new RWFilteredList(io);
 
 // Set special attributes on the filtered list object
-    String [] cw       = {"0", "100", "100", "100", "100", "100"};
+    String [] cw       = {"0", "100", "100", "100", "75", "100", "100", "200"};
 
     lst.setColumnWidth(cw);
-    lst.setTableWidth("600");
+    lst.setTableWidth("800");
     lst.setTableBorder("0");
     lst.setCellPadding("3");
     lst.setAlternatingRowColors("#ffffff", "#cccccc");
     lst.setUseCatalog(true);
     lst.setDivHeight(400);
     lst.setUrlField(0);
-//    lst.setOnClickAction("window.open");
-//    lst.setOnClickOption("\"" + title + "\",\"width=500,height=200,scrollbars=no,left=100,top=100,\"");
-//    lst.setOnClickStyle("style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");
-//    lst.setColumnUrl(2, "comments_d.jsp?type=5&date=" + tools.utils.Format.formatDate(new java.util.Date(),"yyyy-MM-dd"));
-//    lst.setColumnUrl(3, "comments_d.jsp?type=5&date=" + tools.utils.Format.formatDate(new java.util.Date(),"yyyy-MM-dd"));
+    lst.setColumnFormat(6,"(###)-###-####");
     
     lst.setOnClickAction(2, "javascript:enableMouseOut=false;ajaxComplete=false;showItem(event,'comments_d_new.jsp?type=5&date=" + tools.utils.Format.formatDate(new java.util.Date(),"yyyy-MM-dd") + "',0,##idColumn##,txtHint) style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");
     lst.setOnClickAction(3, "javascript:enableMouseOut=false;ajaxComplete=false;showItem(event,'comments_d_new.jsp?type=5&date=" + tools.utils.Format.formatDate(new java.util.Date(),"yyyy-MM-dd") + "',0,##idColumn##,txtHint) style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");

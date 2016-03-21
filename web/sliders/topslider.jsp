@@ -101,6 +101,10 @@ function setContent() {
         });
     }
 }
+
+function showVisit(appointmentId) {
+    window.open('../gotovisit.jsp?&apptId=' + appointmentId,'VisitActivity','width=1000,height=750,resizable=yes,scrollbars=no,left=50,top=20,');
+}
 </script>
 
 

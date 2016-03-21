@@ -10,6 +10,14 @@
     RWInputForm frm = new RWInputForm();
     frm.setShowDatePicker(true);
 
+    String newPatients="0";
+    String patientsWithAppt="0";
+    String patientsNoAppt="0";
+    String patientVisits="0";
+    String appointments="0";
+    String appointmentsWithVisit="0";
+    String appointmentsWithNoVisit="0";
+
     String startDate = request.getParameter("startdate");
     String endDate = request.getParameter("enddate");
     SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -44,8 +52,102 @@
     startDate=tools.utils.Format.formatDate(startDate, "yyyy-MM-dd");
     endDate=tools.utils.Format.formatDate(endDate, "yyyy-MM-dd");
 
-// Begin printing the report
-//    out.print("<div style=\" height: 300; width: 638; overflow: auto;\">");
+// Visit information
+
+    ResultSet npRs = io.opnRS("select count(*) from firstvisits where date between '" + startDate + "' and '" + endDate + "'");
+    if (npRs.next()) {
+       newPatients=npRs.getString(1);
+    }
+    npRs.close();
+
+    ResultSet pvRs = io.opnRS("select count(*) from visits where date between '" + startDate + "' and '" + endDate + "'");
+    if (pvRs.next()) {
+       patientVisits=pvRs.getString(1);
+    }
+    pvRs.close();
+
+    ResultSet pwaRs = io.opnRS("select count(*) from visits where appointmentid in (select id from appointments) and date between '" + startDate + "' and '" + endDate + "'");
+    if (pwaRs.next()) {
+       patientsWithAppt=pwaRs.getString(1);
+    }
+    pwaRs.close();
+
+    ResultSet pnaRs = io.opnRS("select count(*) from visits where appointmentid not in (select id from appointments) and date between '" + startDate + "' and '" + endDate + "'");
+    if (pnaRs.next()) {
+       patientsNoAppt=pnaRs.getString(1);
+    }
+    pnaRs.close();
+
+    ResultSet aRs = io.opnRS("select count(*) from appointments where date between '" + startDate + "' and '" + endDate + "'");
+    if (aRs.next()) {
+       appointments=aRs.getString(1);
+    }
+    aRs.close();
+
+    ResultSet awvRs = io.opnRS("select count(*) from appointments where date between '" + startDate + "' and '" + endDate + "' and id in (select appointmentid from visits)");
+    if (awvRs.next()) {
+       appointmentsWithVisit=awvRs.getString(1);
+    }
+    awvRs.close();
+
+    ResultSet anvRs = io.opnRS("select count(*) from appointments where date between '" + startDate + "' and '" + endDate + "' and id not in (select appointmentid from visits)");
+    if (anvRs.next()) {
+       appointmentsWithNoVisit=anvRs.getString(1);
+    }
+    anvRs.close();
+
+    out.print("<table width=\"620\">");
+
+    out.print("<tr><th colspan=3>Summary from " + startDate + " to " + endDate + ".</td><tr>");
+
+    out.print("<tr>");
+    out.print("<td>Total New Patients:</td>");
+    out.print("<td align=right>" + newPatients + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr><td colspan=2 style='height:2px; font-size:2px; border-top:1px dotted black'>&nbsp;</td>");
+
+    out.print("<tr>");
+    out.print("<td>Total Visits With Appointment:</td>");
+    out.print("<td align=right>" + patientsWithAppt + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr>");
+    out.print("<td>Total Visits Without Appointment:</td>");
+    out.print("<td align=right>" + patientsNoAppt + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr>");
+    out.print("<td>Total Visits:</td>");
+    out.print("<td align=right>" + patientVisits + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr><td colspan=2 style='height:2px; font-size:2px; border-top:1px dotted black'>&nbsp;</td>");
+
+    out.print("<tr>");
+    out.print("<td>Total Appointments With a Visit:</td>");
+    out.print("<td align=right>" + appointmentsWithVisit + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr>");
+    out.print("<td>Total Appointments Without a Visit:</td>");
+    out.print("<td align=right>" + appointmentsWithNoVisit + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("<tr>");
+    out.print("<td>Total Appointments:</td>");
+    out.print("<td align=right>" + appointments + "</td>");
+    out.print("<td></td>");
+    out.print("</tr>");
+
+    out.print("</table>\n");
+    out.print("<br/><br/>");
 
 //---------------------------------------------------------------------------------------------------------------------------//
 //- PAYMENTS ----------------------------------------------------------------------------------------------------------------//

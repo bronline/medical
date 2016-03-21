@@ -1067,7 +1067,7 @@ public class Patient extends MedicalResultSet {
                 ci.append(htmTb.endRow());
             }
             
-            ResultSet authRs = io.opnRS("SELECT *, providers.name as payername FROM patientinsurance left join providers on providers.id=patientinsurance.providerid where patientid=" + this.id + " and active and referencenumber <> ''");
+            ResultSet authRs = io.opnRS("SELECT *, providers.name as payername FROM patientinsurance left join providers on providers.id=patientinsurance.providerid where patientid=" + this.id + " and patientinsurance.id=" + patientInsuranceId + " and active and referencenumber <> ''");
 
             if(authRs.next() && !getBoolean("cashonly")) {
                 authRs.beforeFirst();
