@@ -18,10 +18,12 @@
         ResultSet piRs = io.opnRS("SELECT pi.id, pi.providernumber, p.ediid FROM patientinsurance pi LEFT JOIN providers p ON p.id=pi.providerid WHERE pi.id=" + patientInsuranceId);
         
         if(pRs.next()) {
+            System.out.println("------ AUTHORIZING POKITDOK API ------");
             if(piRs.next()) {
                 PokitDok pd = new PokitDok(pdRs.getString("clientId"), pdRs.getString("clientsecret"));
                 pd.connect();
-
+                System.out.println("------ CALLING POKITDOK CONNECTED ------");
+                
                 Eligibility e = new Eligibility();
                 e.member.first_name = pRs.getString("firstname");
                 e.member.last_name = pRs.getString("lastname");
@@ -32,16 +34,19 @@
                 e.provider.last_name = pRs.getString("providerlastname");
                 e.provider.npi = pRs.getString("providernpi");
 
-                e.service_types.add("chiropractic");
-                e.service_types.add("health_benefit_plan_coverage");
-                e.service_types.add("general_benefits");
-                e.service_types.add("medical_care");
+                e.service_types.add("chiropractic_office_visits");
+//                e.service_types.add("34");
+//                e.service_types.add("health_benefit_plan_coverage");
+//                e.service_types.add("general_benefits");
+//                e.service_types.add("medical_care");
                 e.trading_partner_id = piRs.getString("ediid");
 
                 Map eligibilityQuery = (JSONObject) JSONValue.parse(e.serialize());
 
+                System.out.println("------ CALLING POKITDOK API ------");
                 Map<String, Object> pokitDokResponse = pd.eligibility(eligibilityQuery);
-
+                System.out.println("------ POKITDOK API RESPONSE: " + pokitDokResponse.toString());
+                
                 PreparedStatement lPs = io.getConnection().prepareStatement("INSERT INTO insuranceeligibility (patientinsuranceid, jsonresponse) values(?,?) ON DUPLICATE KEY UPDATE jsonresponse=?");
                 lPs.setString(1, patientInsuranceId);
                 lPs.setString(2, pokitDokResponse.toString());

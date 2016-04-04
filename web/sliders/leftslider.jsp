@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="css/loading.css" title="stylesheet">
 <style type="text/css">
 #leftSliderWrap {
 	position: absolute;
@@ -28,6 +29,7 @@
 	font-weight: bold;
 	padding: 5px;
         height: 350px;
+        width: 980px;
         overflow-y: auto;
         overflow-x: hidden;
 }
@@ -93,7 +95,7 @@ border: 0;
                     }
             });
 
-    });
+    });   
 
     function setLeftContent() {
         if($("#leftSliderContent").html() != '') {
@@ -113,7 +115,7 @@ border: 0;
 
     function checkEligibility(id) {
         var url="ajax/geteligibility.jsp?patientInsuranceId="+id+"&sid="+Math.random();
-
+        $("#leftSliderContent").addClass("loading");
         $.ajax({
             url: url,
             success: function(data){
@@ -123,6 +125,7 @@ border: 0;
                 alert("There was a problem processing the request");
             }
         });
+        $("#leftSliderContent").removeClass("loading");
     }
 </script>
 

@@ -69,8 +69,9 @@
     
     function refreshPage() {
        currentLocationHref=window.location.href;
+       if(currentLocationHref.indexOf("#")>0) { currentLocationHref=currentLocationHref.replace("#",""); }
        if(currentLocationHref.indexOf("?") != -1) {
-           if(currentLocationHref.indexOf("?") < currentLocationHref.length()) { currentLocationHref += "&"; }
+           if(currentLocationHref.indexOf("?") < currentLocationHref.length) { currentLocationHref += "&"; }
        } else {
            currentLocationHref += "?";
        }

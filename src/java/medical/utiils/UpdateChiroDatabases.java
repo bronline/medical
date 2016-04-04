@@ -31,7 +31,7 @@ public class UpdateChiroDatabases {
             String mySql = "select * from userinfo " + 
                     "left join userroles on userinfo.id=userroles.rolprf " +
                     "left join roles on roles.id=userroles.role " +
-                    "where roles.role in('MEDICAL','BROS2') and secprf='vmalchar' order by secprf";
+                    "where roles.role in('MEDICAL','BROS2') order by secprf";
             RWConnMgr chiroIo = new RWConnMgr(databaseUsersLocation, "chiro_site", "rwtools", "rwtools", RWConnMgr.MYSQL);
             ResultSet userRs = chiroIo.opnRS(mySql);
             while (userRs.next()) {
