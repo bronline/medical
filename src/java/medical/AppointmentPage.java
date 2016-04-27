@@ -679,7 +679,7 @@ public class AppointmentPage {
             } catch (Exception ee) {
 
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             
         }
     }

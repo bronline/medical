@@ -57,12 +57,12 @@ function setFocus() {
 
 
 function disableAllButtons() {
-    var buttons = document.getElementsByTagName("input");
-    for (var i=0; i < buttons.length; i++) {
-        if (buttons[i].getAttribute("type") == "button" || buttons[i].getAttribute("type") == "submit") {
-            buttons[i].disabled = true;
-        }
-    }
+//    var buttons = document.getElementsByTagName("input");
+//    for (var i=0; i < buttons.length; i++) {
+//        if (buttons[i].getAttribute("type") == "button" || buttons[i].getAttribute("type") == "submit") {
+//            buttons[i].disabled = true;
+//        }
+//    }
 }
 
 function enableAllButtons() {
@@ -447,6 +447,7 @@ String.prototype.ReplaceAll = function(stringToFind,stringToReplace){
 
 function showAttentionMessagePopup() {
     var url = "ajax/updateattnmessage.jsp";
+    enablePageScripts = false;
     $.ajax({
         url: url,
         success: function (data) {
@@ -470,6 +471,7 @@ function updateAttentionMessage() {
         success: function (data) {
             $("#attentionMessageText").html(data);
             showHide(txtHint,"HIDE");
+            enablePageScripts = true;
         },
         complete: function(data){
 

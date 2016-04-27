@@ -10,8 +10,8 @@
     ResultSet pmtRs=io.opnRS("select * from payments where id=" + request.getParameter("id"));
     if(pmtRs.next()) {
         String detlQry="select p.id, v.`date`, i.description, FORMAT(c.quantity,2) AS quantity, (c.quantity*c.chargeamount) chargeamount, " +
-                "p.amount, (select sum(amount) from payments where chargeid=p.chargeid and provider<>p.provider) AS otherpayments, " +
-                "(c.quantity*c.chargeamount)-p.amount-(select sum(amount) from payments where chargeid=p.chargeid and provider<>p.provider) balance " +
+                "p.amount, ifnull((select sum(amount) from payments where chargeid=p.chargeid and provider<>p.provider),0) AS otherpayments, " +
+                "(c.quantity*c.chargeamount)-p.amount-ifnull((select sum(amount) from payments where chargeid=p.chargeid and provider<>p.provider),0) balance " +
                 "from payments p " +
                 "left join charges c on c.id=p.chargeid " +
                 "left join visits v on c.visitid=v.id " +

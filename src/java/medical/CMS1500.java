@@ -516,7 +516,7 @@ public class CMS1500 extends Document {
             document.setDocumentFieldYCoord("frommonth", document.getDocumentFieldYCoord("month"));
             document.setDocumentFieldYCoord("fromday", document.getDocumentFieldYCoord("day"));
             document.setDocumentFieldYCoord("fromyear", document.getDocumentFieldYCoord("year"));
-            document.setDocumentFieldValue("diagnosiscode", checkForDiagnosisCode(repeatingRs.getString("chargeId")));
+            document.setDocumentFieldValue("diagnosiscode", checkForDiagnosisCode(repeatingRs.getString("chargeId"), document));
             setItemModifier(repeatingRs, document);
             setProviderCPTCode(repeatingRs, document);
             repeatingItems.add(document);
@@ -640,7 +640,7 @@ public class CMS1500 extends Document {
         lRs=null;
     }
     
-    private String checkForDiagnosisCode(String chargeId) {
+    private String checkForDiagnosisCode(String chargeId, Document document) {
         String codeList="";
         String [] codes=new String[diagnosisCodes.size()];
         int numberOfCodesFound=0;
@@ -677,15 +677,15 @@ public class CMS1500 extends Document {
             else if(diagnosisCodes.size()==2) { codeList="12"; }
             else { codeList="1"; }
         } else if(codeList.equals("") && isACAForm()) {
-//            if(diagnosisCodes.size()>=12) { codeList="ABCDEFGHIJKL"; }
-//            else if(diagnosisCodes.size()==11) { codeList="ABCDEFGHIJK"; }
-//            else if(diagnosisCodes.size()==10) { codeList="ABCDEFGHIJ"; }
-//            else if(diagnosisCodes.size()==9) { codeList="ABCDEFGHI"; }
-//            else if(diagnosisCodes.size()==8) { codeList="ABCDEFGH"; }
-//            else if(diagnosisCodes.size()==7) { codeList="ABCDEFG"; }
-//            else if(diagnosisCodes.size()==6) { codeList="ABCDEF"; }
-//            else if(diagnosisCodes.size()==5) { codeList="ABCDE"; }
-            if(diagnosisCodes.size()>=5) { codeList="ABCDE"; }
+            document.setDocumentFieldValue("diagnosiscode1", "");
+            if(diagnosisCodes.size()>=12) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="GHIJKL"; }
+            else if(diagnosisCodes.size()==11) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="GHIJK"; }
+            else if(diagnosisCodes.size()==10) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="GHIJ"; }
+            else if(diagnosisCodes.size()==9) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="GHI"; }
+            else if(diagnosisCodes.size()==8) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="GH"; }
+            else if(diagnosisCodes.size()==7) { document.setDocumentFieldValue("diagnosiscode1", "ABCDEF"); codeList="G"; }
+            else if(diagnosisCodes.size()==6) { codeList="ABCDEF"; }
+            else if(diagnosisCodes.size()==5) { codeList="ABCDE"; }
             else if(diagnosisCodes.size()==4) { codeList="ABCD"; }
             else if(diagnosisCodes.size()==3) { codeList="ABC"; }
             else if(diagnosisCodes.size()==2) { codeList="AB"; }
@@ -1547,7 +1547,7 @@ public class CMS1500 extends Document {
         String queryString="insert into tempbillingcharges " +
                 "select null, batchid, chargeid, patientid, resourceid, month, day, year, placeofservice, typeofservice, " +
                 "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid, " +
-                "box24unusual " +
+                "box24unusual, '' AS diagnosiscode1 " +
                 "from cms1500charges " +
                 "where billinsurance<>1 and chargeId > " + lastChargeId + " and patientid=" + patientId +
                 " and batchid=" + batchId + " and resourceid=" + resourceId +
@@ -1559,7 +1559,7 @@ public class CMS1500 extends Document {
             queryString = "insert into tempbillingcharges " +
                 "select null, batchid, chargeid, patientid, resourceid, month, day, year, placeofservice, typeofservice, " +
                 "code, diagnosiscode, dollars, cents, units, familyplan, emg, cob, modifier, idqual, medicareid, conditionid, " +
-                "box24unusual " +
+                "box24unusual, '' AS diagnosiscode1 " +
                 "from cms1500charges " +
                 "where billinsurance<>1 and chargeId > " + lastChargeId + " and patientid=" + patientId +
                 " and batchid=" + batchId + " and resourceid=" + resourceId +

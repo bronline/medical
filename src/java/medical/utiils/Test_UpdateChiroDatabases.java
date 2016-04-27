@@ -14,7 +14,7 @@ public class Test_UpdateChiroDatabases {
     
     public static void main(String [] args) {
         UpdateChiroDatabases upd = new UpdateChiroDatabases();
-
+        upd.sourceDatabaseLocation = "localhost";
         upd.doUpdate();      
     }
     

@@ -83,6 +83,8 @@ try {
 
         String title = "Deductables";
         String url = "deductable_d.jsp";
+        
+//        out.print(myQuery);
 
     // Create an RWFiltered List object
         RWFilteredList lst = new RWFilteredList(io);
@@ -105,12 +107,6 @@ try {
         lst.setUrlField(0);
 
         lst.setColumnUrl(2, url, 0);
-//        lst.setColumnUrl(3, url, 0);
-//        lst.setColumnUrl(4, url, 0);
-//        lst.setColumnUrl(5, url, 0);
-//        lst.setColumnUrl(6, url, 0);
-//        lst.setColumnUrl(7, url, 0);
-//        lst.setColumnUrl(8, url, 0);
 
         lst.setRowUrl(url);
         lst.setShowRowUrl(false);
@@ -121,20 +117,7 @@ try {
         lst.setUseCatalog(false);
         lst.setDivHeight(250);
         lst.setColumnWidth(cw);
-//        for(int z=0;z<9;z++) { lst.setColumnFilterState(z, true); }
-//        lst.setColumnFilterState(0, false);
-//        lst.setColumnFilterState(1, false);
-//        lst.setColumnFilterState(2, false);
-//        lst.setColumnFilterState(5, false);
-//        lst.setColumnFilterState(6, false);
-/*
-        lst.setColumnAlignment(3, "CENTER");
-        lst.setColumnAlignment(5, "CENTER");
-        lst.setColumnAlignment(6, "CENTER");
-        lst.setColumnAlignment(7, "CENTER");
-        lst.setColumnAlignment(8, "CENTER");
-        lst.setColumnAlignment(9, "RIGHT");
-*/
+
         lst.setColumnFormat(5, "MONEY");
         lst.setColumnFormat(6, "MONEY");
         lst.setColumnFormat(7, "MONEY");

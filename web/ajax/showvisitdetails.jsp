@@ -8,7 +8,7 @@
     String id=request.getParameter("id");
     String chargeId = "";
     String descWidth = "250";
-    String tableWidth = "400";
+    String tableWidth = "500";
     boolean showDetailsOnly=false;
 
     if(request.getParameter("detailsOnly") != null) {
@@ -96,7 +96,7 @@
     out.print("<div align=\"center\">\n");
     if(vRs.next()) {
         if(!showDetailsOnly) {
-            out.print("<v:roundrect style=\"width: 420; height: 160; text-valign: middle; text-align: center;\" arcsize=\".05\">");
+            out.print("<v:roundrect style=\"width: 520; height: 160; text-valign: middle; text-align: center;\" arcsize=\".05\">");
             out.print("<div align=\"right\"><b style=\"cursor: pointer;\" onClick=\"showHide(txtHint,'HIDE')\">close</b></div>");
         }
         out.print(htmTb.startTable());
@@ -113,7 +113,7 @@
         out.print(htmTb.endRow());
         out.print(htmTb.endTable());
 
-        if(!showDetailsOnly) { out.print("<div align=\"left\" style=\"width: 420; height: 120; overflow: auto;\">"); }
+        if(!showDetailsOnly) { out.print("<div align=\"left\" style=\"width: 520; height: 120; overflow: auto;\">"); }
         out.print(htmTb.startTable());
         while(dRs.next()) {
             if(!chargeId.equals(dRs.getString("id"))) {
@@ -138,7 +138,7 @@
                     out.print(htmTb.startRow("style=\"height: 15; font-weight: bold;\""));
                     out.print(htmTb.addCell("", "width=25"));
                     out.print(htmTb.addCell("Date", "width=75"));
-                    out.print(htmTb.addCell("Check #", "width=75"));
+                    out.print(htmTb.addCell("Check #", "width=175"));
                     out.print(htmTb.addCell("Payer Name", "width=175"));
                     out.print(htmTb.addCell("Amount", "width=50"));
                     out.print(htmTb.endRow());
@@ -153,7 +153,7 @@
                 out.print(htmTb.startRow());
                 out.print(htmTb.addCell("", "width=25"));
                 out.print(htmTb.addCell(dRs.getString("paymentdate"), "width=75"));
-                out.print(htmTb.addCell(dRs.getString("checknumber"), "width=75"));
+                out.print(htmTb.addCell(dRs.getString("checknumber"), "width=175"));
                 out.print(htmTb.addCell(dRs.getString("name"), "width=175"));
                 out.print(htmTb.addCell(Format.formatCurrency(dRs.getDouble("paymentamount")), "width=50"));
                 out.print(htmTb.endRow());

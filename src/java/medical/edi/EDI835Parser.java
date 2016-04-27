@@ -8,6 +8,7 @@ package medical.edi;
 import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import org.pb.x12.Cf;
 import org.pb.x12.Loop;
@@ -26,7 +27,8 @@ public abstract class EDI835Parser {
     
     private static java.util.Date today = new java.util.Date();
 
-    public static void parse(String fileName, String databaseName) {
+    public static String parse(String fileName, String databaseName) {
+        String batchStatus="";
         X12 x12 = null;
         Cf cf835 = loadCf(); // candidate for dependency injection
         Parser parser = new X12Parser(cf835);
@@ -47,6 +49,8 @@ public abstract class EDI835Parser {
             double adjustmentAmount = 0.0;
             double writeoffAmount = 0.0;
             double patientAmount = 0.0;
+            double deductibleAmount = 0.0;
+            int deductibleReasonId = 0;
             int patientId = 0;
             int providerId = 0;
 
@@ -107,6 +111,7 @@ public abstract class EDI835Parser {
                     adjustmentAmount = 0.0;
                     writeoffAmount = 0.0;
                     patientAmount = 0.0;
+                    deductibleAmount = 0.0;
 
                     List<Loop> s2110 = loop.findLoop("2110");
                     for(Loop services : s2110) {
@@ -114,6 +119,7 @@ public abstract class EDI835Parser {
                         adjustmentAmount = 0.0;
                         writeoffAmount = 0.0;
                         patientAmount = 0.0;
+                        deductibleAmount = 0.0;
 
                         for(Segment service : services) {
 
@@ -130,10 +136,16 @@ public abstract class EDI835Parser {
                                     }
                                 }
                                 if(service.getElement(1).equals("PR")) {
-                                    patientAmount = Double.parseDouble(service.getElement(3));
+                                    if(!service.getElement(2).equals("1")) {
+                                        patientAmount = Double.parseDouble(service.getElement(3));
+                                    }
                                 }
                             } else if(service.getElement(0).equals("DTM")) {
                                 dos = Format.formatDate(service.getElement(2), "yyyy-MM-dd");
+                            } else if(service.getElement(0).endsWith("AMT")) {
+                                if(service.getElement(1).equals("B6")) {
+                                    deductibleAmount += Double.parseDouble(service.getElement(2));
+                                }
                             }
                         }
 
@@ -150,29 +162,26 @@ public abstract class EDI835Parser {
                                 ResultSet piRs2 = io.opnRS("select * from patientinsurance where primaryprovider and patientid=" + patientId + " and insuranceeffective<'" + paymentDate + "' order by insuranceeffective desc limit 1");
                                 if(piRs2.next()) {
                                     providerId = piRs2.getInt("providerid");
-        /*
-                                    if(piRs2.getInt("providercount") == 1) {
-                                        ResultSet piRs3 = io.opnRS("select * from patientinsurance where active and patientid=" + patientId);
-                                        if(piRs3.next()) { providerId = piRs3.getInt("providerid"); }
-                                        piRs3.close();
-                                        piRs3 = null;
-                                    }
-
-        */
+                                } else  {
+                                    batchStatus += "* The patient (" + ptRs.getString("firstname") + " " + ptRs.getString("lastname") + ") does not have an insurance record for the provider\n";
                                 }
                                 piRs2.close();
                                 piRs2 = null;
                             }
 
                             try {
-                                PreparedStatement chgPs = io.getConnection().prepareStatement("insert into edipayments select null, v.patientid, ifnull(c.id,0) as chargeid, " + paymentAmount + ", " + adjustmentAmount + ", " + patientAmount + ", '" + dos + "', '" + accountNumber + "', " + providerId + ", 0, '" + checkNumber + "', '" + paymentDate + "',0 as eobbatchid from visits v left join charges c on c.visitid=v.id left join items i on c.itemid=i.id where patientid=" + patientId + " and i.code='" + cptCode + "' and v.date = '" + dos + "'");
+                                PreparedStatement chgPs = io.getConnection().prepareStatement("insert into edipayments select null, v.patientid, ifnull(c.id,0) as chargeid, " + paymentAmount + ", " + adjustmentAmount + ", " + patientAmount + ", '" + dos + "', '" + accountNumber + "', " + providerId + ", 0, '" + checkNumber + "', '" + paymentDate + "',0 as eobbatchid, " + deductibleAmount + " from visits v left join charges c on c.visitid=v.id left join items i on c.itemid=i.id where patientid=" + patientId + " and i.code='" + cptCode + "' and v.date = '" + dos + "'");
                                 chgPs.execute();
                             } catch (Exception ediException) {
-                                PreparedStatement chgPs = io.getConnection().prepareStatement("insert into ediexceptions select null, " + patientId + ", " + cptCode + ", " + paymentAmount + ", " + adjustmentAmount + ", " + patientAmount + ", '" + dos + "', '" + accountNumber + "', " + providerId + ", 0, '" + checkNumber + "', '" + paymentDate + "',0" );
+                                PreparedStatement chgPs = io.getConnection().prepareStatement("insert into ediexceptions select null, " + patientId + ", " + cptCode + ", " + paymentAmount + ", " + adjustmentAmount + ", " + patientAmount +  ", '" + dos + "', '" + accountNumber + "', " + providerId + ", 0, '" + checkNumber + "', '" + paymentDate + "',0 ," + deductibleAmount);
                                 chgPs.execute();
                             }
+
+                            
                             piRs.close();
                             piRs = null;
+                        } else {
+                            batchStatus += "* A patient with the account number: " + accountNumber + " was not found\n";
                         }
 
 
@@ -182,17 +191,25 @@ public abstract class EDI835Parser {
                     }
                     System.out.println("");
 
+                } else {
+                    batchStatus += "* The NPI " + npi + " was not found in box 33a for a provider or practice\n";
                 }
             }
 
             // Now process the payments we just added
             int adjustmentPayer = 0;
             PreparedStatement pmtPs = io.getConnection().prepareStatement("insert into payments (provider, checknumber, amount, chargeid, patientid, date, originalamount) values(?,?,?,?,?,?,?)");
+            PreparedStatement dedPs = io.getConnection().prepareStatement("insert into deductables (batchid, patientid, `date`, amount) values(?,?,?,?)");
+            PreparedStatement excPs = io.getConnection().prepareStatement("insert into eobexceptions (chargeid, paymentid, reasonid, amount, `date`) values(?,?,?,?,?)");
             ResultSet lRs = io.opnUpdatableRS("select * from edipayments where not processed and patientid<>0 and chargeid<>0 and providerid<>0");
             ResultSet paRs = io.opnRS("select * from providers where isadjustment limit 1");
             if(paRs.next()) { adjustmentPayer = paRs.getInt("id"); }
+            ResultSet rsnRs = io.opnRS("select * from eobreasons where type='D' limit 1");
+            if(rsnRs.next()) { deductibleReasonId = rsnRs.getInt("id"); } else { deductibleReasonId = 0; }
             while(lRs.next()) {
 
+                int paymentId = 0;
+                
                 if(lRs.getDouble("paymentamount") != 0.0) {
                     pmtPs.setInt(1, lRs.getInt("providerid"));
                     pmtPs.setString(2, lRs.getString("checknumber"));
@@ -202,20 +219,45 @@ public abstract class EDI835Parser {
                     pmtPs.setString(6, lRs.getString("paymentdate"));
                     pmtPs.setDouble(7, lRs.getDouble("paymentamount"));
                     pmtPs.execute();
+                    
+                    io.setMySqlLastInsertId();
+                    paymentId = io.getLastInsertedRecord();
+                }
 
-                    if(adjustmentPayer !=0) {
-                        pmtPs.setInt(1, adjustmentPayer);
-                        pmtPs.setString(2, lRs.getString("checknumber").trim());
-                        pmtPs.setDouble(3, lRs.getDouble("adjustmentamount"));
-                        pmtPs.setInt(4, lRs.getInt("chargeid"));
-                        pmtPs.setInt(5, lRs.getInt("patientid"));
-                        pmtPs.setString(6, lRs.getString("paymentdate"));
-                        pmtPs.setDouble(7, lRs.getDouble("adjustmentamount"));
-                        pmtPs.execute();
+                if(adjustmentPayer !=0) {
+                    pmtPs.setInt(1, adjustmentPayer);
+                    pmtPs.setString(2, lRs.getString("checknumber").trim());
+                    pmtPs.setDouble(3, lRs.getDouble("adjustmentamount"));
+                    pmtPs.setInt(4, lRs.getInt("chargeid"));
+                    pmtPs.setInt(5, lRs.getInt("patientid"));
+                    pmtPs.setString(6, lRs.getString("paymentdate"));
+                    pmtPs.setDouble(7, lRs.getDouble("adjustmentamount"));
+                    pmtPs.execute();
+                    
+                    if(paymentId == 0) {
+                        io.setMySqlLastInsertId();
+                        paymentId = io.getLastInsertedRecord();
                     }
                 }
 
-                if(lRs.getDouble("paymentamount") != 0.0) { lRs.updateBoolean("processed", true); }
+                if(deductibleAmount != 0.0) {
+                    dedPs.setInt(1, 0);
+                    dedPs.setInt(2, lRs.getInt("patientid"));
+                    dedPs.setString(3, lRs.getString("paymentdate"));
+                    dedPs.setDouble(4, lRs.getDouble("deductibleamount"));
+                    dedPs.execute();
+                    
+                    if(deductibleReasonId != 0) {
+                        excPs.setInt(1, lRs.getInt("chargeid"));
+                        excPs.setInt(2, paymentId);
+                        excPs.setInt(3, deductibleReasonId);
+                        excPs.setDouble(4, lRs.getDouble("deductibleamount"));
+                        excPs.setString(5, lRs.getString("paymentdate"));
+                        excPs.execute();
+                    }
+                }
+
+                if(lRs.getDouble("paymentamount") != 0.0 || adjustmentPayer != 0.0) { lRs.updateBoolean("processed", true); }
                 lRs.updateRow();
             }
             lRs.close();
@@ -223,9 +265,16 @@ public abstract class EDI835Parser {
 
             PreparedStatement completePs = io.getConnection().prepareStatement("update batchcharges set complete=1 where complete=0 and chargeid in (SELECT id FROM edipayments where processed and paymentamount<>0)");
             completePs.execute();
+            
+            if(batchStatus.equals("")) {
+                batchStatus = "Posted";
+            }
+            
         } catch (Exception e1) {
-                e1.printStackTrace();
+            e1.printStackTrace();
         }
+        
+        return batchStatus;
     }
 
     // Alternately can be loaded using Spring/DI

@@ -148,14 +148,14 @@
 // Everything we need is inside the form.  Close it up.
     iForm.append(frm.endForm());
 
-    String url         = "applybatchpayments.jsp?providerId="+providerId;
+    String url         = "applybatchpayments_new.jsp?providerId="+providerId;
     String title       = "";
     String [] cw       = {"0", "80", "80", "80", "50", "75", "75", "75" };
 
     lowDate = tools.utils.Format.formatDate(startDate, "yyyy-MM-dd");
     highDate = tools.utils.Format.formatDate(endDate, "yyyy-MM-dd");
     
-    myQuery =   "select b.id as batchId, b.created as Date, " +
+    myQuery =   "select b.id as batchId, b.Id as Batch, " +
                 "min(pb.date) as Start, max(pb.date) as End, "+
                 "count(pb.id) as Charges, " +
                 "sum(chargeamount) as Charges, sum(paidamount) as Payments, sum(balance) as Balance  " +
@@ -164,7 +164,7 @@
                 "left join batchcharges bc on bc.batchid=b.id " +
                 "left join patientbalance pb on pb.id=bc.chargeid " +
                 "where billed " +
-                "and balance>0 " + 
+                "and (NOT bc.complete AND balance>0) " + 
                 "and b.provider=" + providerId +
                 " group by b.id, b.created " +
                 "order by b.created";
