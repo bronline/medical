@@ -542,7 +542,7 @@ public class BillingStatement {
                 if(selectedItemFound) { si.append(","); }
                 si.append(field.substring(3));
                 selectedItemFound=true;
-            }
+            } 
         }
         if(selectedItemFound) { si.append(") "); }
 

@@ -7,11 +7,12 @@
         top: 100px;
         left: 250px;
         border-radius: 10;
-        height: 240px;
+        height: 280px;
         width: 400px;
         visibility: hidden;
         background-color: #a6c3f8;
         box-shadow: 10px 10px 5px #666666;
+        border-radius: 10px;
     }
 </style>
 <SCRIPT language=JavaScript>
@@ -146,7 +147,7 @@ self.close();
         lst.setOnClickStyle("style=\"cursor: pointer; color: #2c57a7; font-weight: bold;\"");
         lst.setShowComboBoxes(false);
         lst.setUseCatalog(false);
-        lst.setDivHeight(250);
+        lst.setDivHeight(150);
         lst.setColumnWidth(cw);
         
         lst.setShowColapsableRow(true);
@@ -155,7 +156,8 @@ self.close();
         lst.setColapsableRowOptions("style=\"visibility: hidden; display: none;\"");
 
         out.print(lst.getHtml(request, batchQuery, ch));
-
+        out.print("<br/><br/>");
+        
     // Start the form and table
         uf.append(frm.startForm("encType=\"multipart/form-data\""));
         session.setAttribute("patientid", id);

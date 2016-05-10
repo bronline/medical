@@ -11,7 +11,7 @@
         if(printOption == "P") {
 //            var selected = $('#patList :input:not(:checked)').map(function(i,el){return el.name;}).get();
             var selected = $('#patList input:checked').map(function(i,el){return el.name;}).get();
-            var url="report_statements.jsp?statements=S&printOption=S&minDays=" + minDays.value + "&maxDays=" + maxDays.value + "&complete=" + complete[complete.selectedIndex].value + "&patientType=" + patientType[patientType.selectedIndex].value;
+            var url="report_statements.jsp?statements=S&printOption=O&minDays=" + minDays.value + "&maxDays=" + maxDays.value + "&complete=" + complete[complete.selectedIndex].value + "&patientType=" + patientType[patientType.selectedIndex].value;
             for(i=0;i<selected.length;i++) { url += "&"+selected[i]+"=1"; }
             window.open(url,"statements");
         } else {
@@ -98,6 +98,8 @@
             "group by p.id " +
             "having sum(c.chargeamount*c.quantity)-sum(ifnull((select sum(amount) from payments where chargeid=c.id),0.00))>0 " +
             "order by p.lastname, p.firstname";
+    
+    statementQuery = "call rwcatalog.prGetPatientStatementBalance('" + io.getLibraryName() + "','" + patientType + "','" + complete + "'," + maxDays + "," + minDays + ")";
 
     if(print != null) {
         RWFilteredList lst = new RWFilteredList(io);
@@ -108,13 +110,14 @@
         lst.setRoundedHeadings("#030089", "");
         lst.setColumnFilterState(1, false);
 
-        String [] ch = { "", "Include", "Last Name", "First Name", "Charges", "Payments<br>Adjustments" };
-        String [] cw       = {"0", "75", "125", "100", "100", "100" };
+        String [] ch = { "", "Include", "Last Name", "First Name", "Charges", "Payments<br>Adjustments", "Balance" };
+        String [] cw       = {"0", "75", "125", "75", "75", "75", "75" };
 
         lst.setColumnWidth(cw);
         lst.setColumnAlignment(1, "center");
         lst.setColumnFormat(4, "MONEY");
         lst.setColumnFormat(5, "MONEY");
+        lst.setColumnFormat(6, "MONEY");
         lst.setDivHeight(300);
         lst.setSummaryColunn(4);
         lst.setSummaryColunn(5);

@@ -65,11 +65,7 @@
 %>
 <%@ include file="../sliders/leftslider.jsp" %>
 <div id="instantMessages" style="text-align: left; background-color: transparent; position: absolute; visibility: hidden; display: none; z-index: 99;"></div>
-<!--
-<table height="100%" width="100%" border=0 cellpadding=0 cellspacing=0  style="z-index: 100;">
-  <tr>
-    <td height=75 colspan=2>
--->
+
 <%@ include file="../sliders/topslider.jsp" %>
 <div align="center" style="position: absolute; top: 0; left: 0; z-index: 100; height: 78px; z-index: 100; background-color: #ffffff; width: 100%">
         <div align="left" style="float: left; width: 15%; z-index: 100;"><img src="/medicaldocs/<% out.print(libraryName); %>/images/topleft.JPG" height=75 alt=""></div>
@@ -77,28 +73,17 @@
         <div align="right" style="float: left; width: 15%; z-index: 100;"><img src="/medicaldocs/<% out.print(libraryName); %>/images/topright.JPG" height=75 alt=""></div>
         <div style="float: left; width: 100%; background-color: navy; height: 3px; z-index: 100;"></div>
 </div>
-<!--
-        <table  width=100% border=0 cellpadding=0 cellspacing=0 style="z-index: 0;">
-            <tr>
-                <td width="45%" bgcolor=white align=left><img src="/medicaldocs/<% out.print(libraryName); %>/images/topleft.JPG" height=75 alt=""></td>
-                <td width="10%" bgcolor=white align=left><img src="/medicaldocs/<% out.print(libraryName); %>/images/topcenter.JPG" height=75 alt=""></td>
-                <td width="45%" bgcolor=white align=right><img src="/medicaldocs/<% out.print(libraryName); %>/images/topright.JPG" height=75 alt=""></td>
-            </tr>
-            <tr>
-                <td width="100%" colspan=3 height=3 bgcolor=navy></td>
-            </tr>
-        </table>
 
-    </td>   
-  </tr>
--->
 <div align="left" style="position: absolute; top: 100px; width: 100%;">
 <table height="100%" width="100%" border=0 cellpadding=0 cellspacing=0>
-  <tr>
-    <td align=left valign=top>
-      <TABLE cellSpacing=5 border=0>
-	<TR>
-          <TD valign=top>
+    <tr>
+        <td align="right"><a href="logout.jsp" style="padding-right: 15px; text-decoration: none; color: #ffffff;">logout</a></td>
+    </tr>
+    <tr>
+        <td align=left valign=top>
+            <TABLE cellSpacing=5 border=0>
+                <TR>
+                    <TD valign=top>
 
 <!-- start of body -->              
 <% }

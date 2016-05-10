@@ -37,7 +37,7 @@ try {
 
     if (startDate == null) {
        Calendar startCal = Calendar.getInstance();
-       startCal.add(Calendar.MONTH, -1);
+       startCal.add(Calendar.MONTH, -3);
        startDate = mdyFormat.format(startCal.getTime());
     }
 
@@ -64,6 +64,8 @@ try {
                          " providers b on provider = b.id " +
                          " where created >= '" + startDate + "' " +
                          "order by created desc, batch desc";
+    
+    myQuery = "CALL rwcatalog.prGetBillBatchList('" + io.getLibraryName() + "','" + startDate + "')";
     String url         = "batches_d.jsp";
     String title       = "Billing Batches";
 

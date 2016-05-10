@@ -74,7 +74,7 @@ function billSupplemental(batchId,providerId,patientId) {
                     ")";
             }
 
-            PreparedStatement batchPs = io.getConnection().prepareStatement("insert into batches select null, description, current_date, null, ?, null, 1 from batches where id=?");
+            PreparedStatement batchPs = io.getConnection().prepareStatement("insert into batches select null, description, current_date, null, ?, null, 1, 0 from batches where id=?");
             PreparedStatement chargePs = io.getConnection().prepareStatement(selectedCharges);
 
             batchPs.setString(1, providerId);
@@ -89,6 +89,7 @@ function billSupplemental(batchId,providerId,patientId) {
 //            chargePs.setString(3, patientId);
             chargePs.execute();
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return newBatchId;

@@ -1735,6 +1735,10 @@ public class Patient extends MedicalResultSet {
         return getPatientAging(htmTb, null, null, rowColor, 0, selectedCharges);
     }
 
+    public String getPatientAging(RWHtmlTable htmTb, String rowColor, int seperatorHeight, String selectedCharges) throws Exception {
+        return getPatientAging(htmTb, null, null, rowColor, seperatorHeight, selectedCharges);
+    }
+
     public String getPatientAging(RWHtmlTable htmTb, String rowColor, int seperatorHeight) throws Exception {
         return getPatientAging(htmTb, null, null, rowColor, seperatorHeight, "");
     }

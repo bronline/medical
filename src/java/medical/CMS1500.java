@@ -197,20 +197,20 @@ public class CMS1500 extends Document {
             do {
 //                currentBillDate=repeatingRs.getInt("year")*1000+repeatingRs.getInt("month")*100+repeatingRs.getInt("day");
                 fillFormFields(batchId, patientId);
-                pv.append("<table id=page" + pageNumber + " width=100% " + displayStyle + "><tr><td>\n");
+                pv.append("<table id=\"page" + pageNumber + "\" width=\"100%\" " + displayStyle + "><tr><td>\n");
                 for(int x=0;x<documentData.length;x++) {
                     double leftPosition=0;
 //                    try{ leftPosition=Integer.parseInt(documentData[x][1])*1.2; } catch (Exception e) { }
                     try{ leftPosition=Integer.parseInt(documentData[x][1]); } catch (Exception e) { }
                     if(documentData[x][0] == null) { documentData[x][0]=""; }
-                    if(documentData[x][4]== null || documentData[x][4].equals("0")) {
-                        pv.append("<div style='font-size: 10pt; height: 10pt; font-family: courier new; position: absolute; left: " + leftPosition + "; top: " + documentData[x][2] + "; '>" + documentData[x][0] + "</div>\n");
-                    } else {
-                        pv.append("div style='position: absolute; left: " + leftPosition + "; top: " + documentData[x][2] + "; '><input type=text name=field" + x + " value='" + documentData[x][0] + "' size=" + documentData[x][4] + " style='font-size: 10pt; height: 10pt; line-height: 7pt; font-family: courier new;'></div>\n");
-                    }
+//                    if(documentData[x][4]== null || documentData[x][4].equals("0")) {
+                        pv.append("<div style=\"font-size: 10pt; height: 10pt; font-family: courier new; position: absolute; left: " + leftPosition + "; top: " + documentData[x][2] + ";\">" + documentData[x][0] + "</div>\n");
+//                    } else {
+//                        pv.append("div style=\"position: absolute; left: " + leftPosition + "; top: " + documentData[x][2] + ";\"><input type=\"text\" name=\"field" + x + "\" value=\"" + documentData[x][0] + "\" size=\"" + documentData[x][4] + "\" style=\"font-size: 10pt; height: 10pt; line-height: 7pt; font-family: courier new;\"></div>\n");
+//                    }
                 }
                 pv.append("</td></tr></table>\n");
-                displayStyle="style='visibility: hidden; display: none;'";
+                displayStyle="style=\"visibility: hidden; display: none;\"";
                 pageNumber ++;
                 if(allowMultipleDatesPerPage) {
                     repeatingRs =  io.opnRS("select * from tempbillingcharges where chargeId > " + lastChargeId + " and patientid=" + patientId + " and batchid=" + batchId + " and resourceid=" + resourceId + " and conditionid=" + getConditionId() + " order by batchid, patientid, conditionid, resourceid, chargeid");
@@ -231,7 +231,7 @@ public class CMS1500 extends Document {
         if(pageNumber>2) {
             String fontWeight="bold";
             for(int p=1;p<pageNumber;p++) {
-                pageSelection += "<b onClick=showPage(" + p + ") id=link" + p + " style='font-weight: " + fontWeight + "; cursor: pointer;'>Page " + p + "</b>&nbsp;&nbsp;\n";
+                pageSelection += "<b onClick=\"showPage(" + p + ")\" id=\"link" + p + "\" style=\"font-weight: " + fontWeight + "; cursor: pointer;\">Page " + p + "</b>&nbsp;&nbsp;\n";
                 fontWeight="normal";
             }
         }

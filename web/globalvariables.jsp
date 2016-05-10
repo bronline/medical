@@ -54,8 +54,6 @@
         blRs.close();
         blRs=null;
 
-
-
         java.util.ArrayList qsParm=new java.util.ArrayList();
         String queryString=request.getQueryString();
         String qsValue="";
@@ -121,8 +119,6 @@
             }
       }
 
-//    }
-
     sqlIo.getConnection().close();
     sqlIo=null;
 
@@ -135,7 +131,6 @@
     Location location   = (Location)session.getAttribute("location");
     String currentPage  = request.getRequestURI();
     String blanks       = "                    ";
-//    String parmsPassed  = "";
 
     if(databaseName == null) { databaseName=request.getParameter("databaseName"); }
     if(databaseName == null || databaseName.equals("")) {
@@ -173,7 +168,6 @@
         }
 
         if(altIo.getConnection() == null) {
-//            altIo.setConnection(altIo.opnmySqlConn());
             altIo = new RWConnMgr("localhost", databaseName, "rwtools", "rwtools", RWConnMgr.MYSQL);
             session.setAttribute("altConnMgr", altIo);
         } else {

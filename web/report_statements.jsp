@@ -56,6 +56,8 @@
             "v.`date` between DATE_SUB(CURRENT_DATE, INTERVAL " + maxDays + " DAY) and DATE_SUB(CURRENT_DATE, INTERVAL " + minDays + " DAY)) " +
             "group by p.id " +
             "order by p.lastname, p.firstname";
+    
+    statementQuery = "call rwcatalog.prGetPatientStatementBalance('" + io.getLibraryName() + "','" + patientType + "','" + complete + "'," + maxDays + "," + minDays + ")";
 
     String chargeQuery = "SELECT DISTINCT vs.id, bc.chargeid " +
             "FROM visits vs " +

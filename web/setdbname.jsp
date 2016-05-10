@@ -10,6 +10,7 @@
 //    response.sendRedirect("patientmaint.jsp");
 
 //  Check for insurance re-newing
+/*
     String patInsSQL="UPDATE patientinsurance " +
             "LEFT JOIN providers ON patientinsurance.providerid=providers.id " +
             "SET insuranceeffective=DATE_ADD(providers.effectivedate, INTERVAL 1 YEAR), active=1 " +
@@ -24,6 +25,7 @@
 
     piPs.execute();
     pPs.execute();
+*/
 %>
 <script type="text/javascript">
     function launchApplication(launchMonitor,launchTaskList) {

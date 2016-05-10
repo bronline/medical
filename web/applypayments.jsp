@@ -1,7 +1,7 @@
 <%@include file="globalvariables.jsp" %>
 
 <title>Apply Payments</title>
-
+  
 <script language="javascript">
   function submitForm(action) {
     var isSure = confirm('This Action will reset all changes in the list.  Do you want to continue?');
@@ -158,8 +158,8 @@ self.close();
         endDate=request.getParameter("endDate");
     }
     if(request.getParameter("coPay") != null) {
-        typeDescription = "<b style='color: red;'>Due Today: </b>";
-        checkAmount="<b style='color: red;'>" + Format.formatCurrency(checkAmount) + "</b>";
+        typeDescription = "<b style='color: red;'>Due Today:</b>";
+        checkAmount="<b style='color: red;'>" + checkAmount + "</b>";
     }
     if(request.getParameter("date") != null) {
         paymentDate=Format.formatDate(request.getParameter("date"), "yyyy-MM-dd");
@@ -195,8 +195,7 @@ self.close();
     htmTb.setWidth("210");
 
     if(io.getConnection().isClosed()) { io.opnmySqlConn(); }
-
-/*
+    
 // Instantiate result sets for use in the comboboxes
     ResultSet lRs;
     if (!parentPayment.equals("0")) {
@@ -216,16 +215,14 @@ self.close();
     } else {
         lRs = io.opnRS("select 0, 'Cash' as name union select id, name from providers where reserved order by name ");
     }
-*/
-    ResultSet lRs=io.opnRS("select 0 as eobreasonid, '-- None --' as description union select id as eobreasonid, description from eobreasons where createadjustment order by description");
-
+    
 // Print The Title
     patient.setId(patientId);
     patient.beforeFirst();
     if (patient.next()) {
         patientName = patient.getString("firstname") + " " + patient.getString("lastname") ;
     }
-    out.print("<H1>Apply Payments for " + patientName + ", " + typeDescription +  " " + checkAmount + "</H1>");
+    out.print("<H1>Apply Payments for " + patientName + ", " + typeDescription +  " " + Format.formatCurrency(checkAmount) + "</H1>");
     
 // Build the form now
     iForm.append(frm.startForm());
@@ -299,10 +296,10 @@ self.close();
     iForm.append(htmTb.startRow());
     iForm.append(htmTb.headingCell("Date", "width=75"));
     iForm.append(htmTb.headingCell("Description", "width=225"));
-    iForm.append(htmTb.headingCell("Copay/<br/>Co-Insurance", "width=75"));
     iForm.append(htmTb.headingCell("Charge<br>Amount", htmTb.RIGHT, "width=75"));
     iForm.append(htmTb.headingCell("Recvd<br>Amount", htmTb.RIGHT, "width=75"));
     iForm.append(htmTb.headingCell("Balance", htmTb.RIGHT, "width=75"));
+    iForm.append(htmTb.headingCell("Copay", "width=75"));
 //    iForm.append(htmTb.headingCell("Check Number", "width=80"));
     iForm.append(htmTb.headingCell("Trans<br> Amount", "width=75"));
 //    iForm.append(htmTb.headingCell("Writeoff", "width=60"));
@@ -373,18 +370,17 @@ self.close();
         iForm.append(htmTb.startRow("bgcolor="+rowColor));
         iForm.append(htmTb.addCell(Format.formatDate(pRs.getString("date"), "MM/dd/yy")+frm.hidden(paymentDate,"date"+chargeId),htmTb.CENTER, "width=50"));
         iForm.append(htmTb.addCell(pRs.getString("description"), "width=250"));
-        iForm.append(htmTb.addCell(Format.formatCurrency(pRs.getString("copayamount")), 1, "width=50"));
 //        iForm.append(htmTb.addCell(copayAmount, 1, "width=50"));
         iForm.append(htmTb.addCell(Format.formatCurrency(pRs.getString("chargeamount")), htmTb.RIGHT, "width=75"));
         iForm.append(htmTb.addCell(Format.formatCurrency(pRs.getString("paidamount")), htmTb.RIGHT, "width=75"));
         iForm.append(htmTb.addCell(Format.formatCurrency(pRs.getString("balance")), htmTb.RIGHT, "valign=middle width=75 id=bal"+chargeId));
+        iForm.append(htmTb.addCell(Format.formatCurrency(pRs.getString("copayamount")), 1, "width=50"));
         iForm.append(htmTb.addCell(frm.textBox(checkNumber, "checkNumber"+chargeId, "15","15","class=tBoxText"), 2, "style=\"visibility: hidden; display: none;\" width=0"));
         iForm.append(htmTb.addCell(frm.textBox(tools.utils.Format.formatCurrency(defaultPayment), "checkAmount"+chargeId, "10","10","style='text-align: right;' class=tBoxText onBlur=\"this.value=formatCurrency(this.value);calcPatAmt(this)\""), htmTb.RIGHT, "width=75"));
         iForm.append(htmTb.addCell(frm.textBox(tools.utils.Format.formatCurrency(woAmount), "woAmount"+chargeId, "10","10","style='text-align: right;' class=tBoxText onBlur=\"this.value=formatCurrency(this.value);calcPatAmt(this)\""), htmTb.RIGHT, "style=\"visibility: hidden; display: none;\" width=0"));
         if(bulkPayments == null) { iForm.append(htmTb.addCell(frm.textBox(tools.utils.Format.formatCurrency(copayAmount), "patAmount"+chargeId, "10","10","style='text-align: right;' class=tBoxText onFocus=this.select() onBlur=\"this.value=formatCurrency(this.value);calcWoAmt(this);\""), htmTb.RIGHT, "width=75")); }
         lRs.beforeFirst();
-//        iForm.append(htmTb.addCell(frm.comboBox(lRs,"providerId"+chargeId,"id",false,"1",preload2,providerId,"class=cBoxText style='width:90px' READONLY"), 2,"width=100"));
-        iForm.append(htmTb.addCell(frm.comboBox(lRs,"eobReasonId"+chargeId,"id",false,"1",null,"0","class=cBoxText style='width:90px' "), 2,"width=100"));
+        iForm.append(htmTb.addCell(frm.comboBox(lRs,"providerId"+chargeId,"id",false,"1",preload2,providerId,"class=cBoxText style='width:90px' READONLY"), 2,"width=100"));
         iForm.append(htmTb.endRow());
         if (rowColor.equals("lightgrey")) {
             rowColor="#cccccc";

@@ -78,7 +78,8 @@
                     "  edipayments.checknumber, " +
                     "  edipayments.paymentdate, " +
                     "  edipayments.chargeid, " +
-                    "  0 as exceptionrecord " +
+                    "  0 as exceptionrecord, " +
+                    "  edipayments.eobbatchid " +
                     "from edipayments " +
                     "left join patients on patients.id=edipayments.patientid " +
                     "left join charges on charges.id=edipayments.chargeid " +
@@ -102,7 +103,8 @@
                     "  ediexceptions.checknumber, " +
                     "  ediexceptions.paymentdate, " +
                     "  0 as chargeid, " +
-                    "  1 as exceptionrecord " +
+                    "  1 as exceptionrecord, " +
+                    "  ediexceptions.eobbatchid " +
                     "from ediexceptions " +
                     "left join patients on patients.accountnumber=ediexceptions.accountnumber " +
                     "left join providers on providers.id=ediexceptions.providerid " +
@@ -190,8 +192,21 @@
             out.print(htmTb.addCell("Patient Responsible","width=\"100\""));
             out.print(htmTb.addCell(frm.comboBox(eRs,"eobReasonId","reasonid",false,"1",null,"","class=cBoxText style='width: 90px' onChange=calculateAdjustmentAmount(this)") + frm.hidden("", "eobReasonType")));
             out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(htmTb.addCell("Attention Box","width=\"100\""));
+            out.print(htmTb.addCell("<input type=\"text\" class=\"tBoxText\" id=\"attentionbox\" name=\"attentionbox\" size=\"35\" value=\"\">"));
+            out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(htmTb.addCell("Notes to Batch","width=\"100\""));
+            out.print(htmTb.addCell("<input type=\"text\" class=\"tBoxText\" id=\"notestobatch\" name=\"notestobatch\" size=\"35\" value=\"\">"));
+            out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(htmTb.addCell("Notes to Benefits/Payer","width=\"100\""));
+            out.print(htmTb.addCell("<input type=\"text\" class=\"tBoxText\" id=\"notestobenefits\" name=\"notestobenefits\" size=\"35\" value=\"\">"));
+            out.print(htmTb.endRow());
             out.print(htmTb.endTable());
             out.print("<input type=\"hidden\" id=\"id\" name=\"id\" value=\"" + id + "\"> ");
+            out.print("<input type=\"hidden\" id=\"eobbatchid\" name=\"eobbatchid\" value=\"" + lRs.getString("eobbatchid") + "\"> ");
             out.print("<input type=\"hidden\" id=\"patientid\" name=\"patientid\" value=\"" + lRs.getString("patientid") + "\"> ");
             out.print("<input type=\"hidden\" id=\"exceptionrecord\" name=\"exceptionrecord\" value=\"" + exceptionRecord + "\"> ");
             out.print("<input type=\"hidden\" id=\"chargeamount\" name=\"chargeamount\"    value=\"" + lRs.getDouble("chargeamount")*lRs.getDouble("quantity") + "\"");
@@ -223,6 +238,10 @@
         String paymentDate = request.getParameter("paymentdate");
         String eobReasonType = request.getParameter("eobReasonType");
         String eobReasonId = request.getParameter("eobReasonId");
+        String attentionMsg = request.getParameter("attentionbox");
+        String notesToBatch = request.getParameter("notestobatch");
+        String notesToBenefits = request.getParameter("notestobenefits");
+        String batchId = request.getParameter("eobbatchid");
 
         double dblPaymentAmount = 0.0;
         double dblAdjustmentAmount = 0.0;
@@ -248,6 +267,9 @@
         PreparedStatement eobReasonPs = io.getConnection().prepareStatement("select * from eobreasons where id=?");
         PreparedStatement eobExceptionPs = io.getConnection().prepareStatement("insert into eobexceptions (chargeid, paymentid, reasonid, amount, `date`) values (?, ?, ?, ?, ?)");
         PreparedStatement lPs = io.getConnection().prepareStatement("insert into payments (provider, checknumber, amount, chargeid, patientid, date, parentpayment, originalamount) values(?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement bcPs = io.getConnection().prepareStatement("insert into billbatchcomments (batchid, patientid, comments) values(?,?,?) ON DUPLICATE KEY UPDATE comments=concat(comments,'\n',?)");
+        PreparedStatement piPs = io.getConnection().prepareStatement("update patientinsurance set notes=case when notes = '' then ? else concat(notes,'\n',?) end where patientid=? and providerid=?");
+        PreparedStatement ptPs = io.getConnection().prepareStatement("update patients set attentionmsg=case when attentionmsg='' then ? else concat(attentionmsg,'\n',?) end where id=?");
 
         lPs.setString(2, checkNumber);
         lPs.setString(4, chargeId);
@@ -334,6 +356,32 @@
             batchChargePs.setString(1, chargeId);
             batchChargePs.setString(2, providerId);
             batchChargePs.execute();
+        }
+        
+        if(attentionMsg != null && !attentionMsg.trim().equals("")) {
+            ptPs.setString(1, attentionMsg);
+            ptPs.setString(2, attentionMsg);
+            ptPs.setString(3, patientId);
+            ptPs.execute();
+        }
+        
+        if(notesToBatch != null && !notesToBatch.trim().equals("")) {
+            ResultSet bcRs = io.opnRS("select b.id from batchcharges bc left join batches b on bc.batchid=b.id where bc.chargeid=" + chargeId + " and b.provider=" + providerId);
+            if(bcRs.next()) {
+                bcPs.setString(1, bcRs.getString("id"));
+                bcPs.setString(2, patientId);
+                bcPs.setString(3, notesToBatch);
+                bcPs.setString(4, notesToBatch);
+                bcPs.execute();
+            }
+        }
+        
+        if(notesToBenefits != null && !notesToBenefits.trim().equals("")) {
+            piPs.setString(1, notesToBenefits);
+            piPs.setString(2, notesToBenefits);
+            piPs.setString(3, patientId);
+            piPs.setString(4, providerId);
+            piPs.execute();
         }
     }
 %>
