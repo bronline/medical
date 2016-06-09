@@ -18,7 +18,7 @@
     int row=0;
     while(insuranceRs.next()) {
         rowColor="#e0e0e0";
-        if(!providerKey.equals(insuranceRs.getString("providerid"))) {
+        if(!providerKey.equals(insuranceRs.getString("name") + insuranceRs.getString("address"))) {
             String phoneNumber="";
             if(insuranceRs.getDouble("phonenumber") != 0) { phoneNumber=" - " + tools.utils.Format.formatPhone(insuranceRs.getString("phonenumber")); }
             if(insuranceRs.getInt("extension") !=0) { phoneNumber += " ext: " + insuranceRs.getString("extension"); }
@@ -91,13 +91,13 @@
             htmTb.setCellVAlign("BOTTOM");
         }
 
-        if(!patientKey.equals(insuranceRs.getString("providerid")+insuranceRs.getString("patientname"))) {
+        if(!patientKey.equals(providerKey+insuranceRs.getString("patientname"))) {
             if(!patientKey.trim().equals("")) {
                 double doubleRow=Double.parseDouble(""+row);
                 if((row/2) == (doubleRow/2)) { rowColor="#cccccc"; }
 
                 String infoLink="onClick=\"showBalanceInfo(event,"+patientId+","+providerKey+",txtHint)\" ";
-                if(providerKey.equals(insuranceRs.getString("providerid"))) {
+                if(providerKey.equals(insuranceRs.getString("name") + insuranceRs.getString("address"))) {
                     out.print(htmTb.startRow());
                     out.print(htmTb.startCell(RWHtmlTable.CENTER));
                     out.print(htmTb.startTable("80%"));
@@ -134,9 +134,9 @@
 
         providerName=insuranceRs.getString("name");
         patientName=insuranceRs.getString("patientname");
-        providerKey=insuranceRs.getString("providerid");
+        providerKey=insuranceRs.getString("name") + insuranceRs.getString("address");
         patientId=insuranceRs.getString("patientid");
-        patientKey=insuranceRs.getString("providerid")+insuranceRs.getString("patientname");
+        patientKey=providerKey+insuranceRs.getString("patientname");
     }
 
     //Patient Totals

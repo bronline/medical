@@ -268,6 +268,16 @@ self.close();
 
         bnRs.close();
     }
+    
+    String patientAttentionMsg = request.getParameter("patientAttention");
+    if(patientAttentionMsg != null) {
+        ResultSet ptRs = io.opnUpdatableRS("select id, attentionmsg from patients where id=" + patient.getId());
+        if(ptRs.next()) {
+            ptRs.updateString("attentionmsg", patientAttentionMsg);
+            ptRs.updateRow();
+        }
+        ptRs.close();
+    }
 
     out.print("<script type=\"text/javascript\">self.close();</script>");
     session.removeAttribute("batchId");

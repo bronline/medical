@@ -8,9 +8,10 @@
     .providerTotals { font-size: 11px; }
     .grandTotals { font-size: 11px; }
 </style>
-<v:subitemlist id="subItemList" style="position: absolute; top: 50px; left: 20px; visibility: hidden; background-color: white; width: 600; height: 500;"></v:subitemlist>
-<v:shadow id="shadow" style='position: absolute; text-align: center; z-index: 98; visibility: hidden; ' arcsize='.05' fillcolor='#666666' >&nbsp;&nbsp;</v:shadow>
-<v:roundrect id="txtHint" arcsize='.25' style="text-align: left; position: absolute; z-index: 99; visibility: hidden;"></v:roundrect>
+<style media="print" rel="stylesheet" type="text/css">
+    .navStuff { DISPLAY: none }
+    a:after { content:' [' attr(href) '] ' }
+</style>
 <%
 String providerId = request.getParameter("providerId");
 String showZeroBalances = request.getParameter("showZeroBalances");
@@ -22,24 +23,28 @@ String patientId = "";
 String rowColor="#e0e0e0";
 String delinquentDays = request.getParameter("delinquentDays");
 String patientTypeSelection = "";
+String pType = request.getParameter("patientType");
 
 if (showZeroBalances==null) showZeroBalances="false";
 if (providerId==null) providerId="0";
-if (delinquentDays==null) delinquentDays="30";
+if (delinquentDays==null) delinquentDays="0";
 boolean zeroBalances = (showZeroBalances.equals("false")) ? false:true;
 boolean pipOnly = false;
 boolean insuranceOnly = false;
 
-if(request.getParameter("pipOnly") != null) { patientTypeSelection = " and patientinsurance.ispip "; }
 
-// Get a list of providers
+if(request.getParameter("patientType") != null) { 
+    if(request.getParameter("patientType").equals("P")) { patientTypeSelection = " and patientinsurance.ispip "; }
+    if(request.getParameter("patientType").equals("I")) { patientTypeSelection = " and not patientinsurance.ispip "; }
+}
+
 String myQuery="select providers.id as providerid, patients.id as patientid, batches.id as batchid, patients.accountnumber, providers.name, concat(patients.firstname, ' ', patients.lastname) as patientname, DATEDIFF(current_date,billed) as daysold, " +
         "  substr(concat(providers.name,' - ',REPLACE(substr(providers.address,1,locate(_latin1'\r',providers.address)-1),'\r\n',''),' - ', " +
         "   case when substr(providers.address,length(providers.address)-4,1)='-' then " +
         "     replace(substr(providers.address,(locate(_latin1'\r',providers.address) + 2),length(providers.address)-10-(locate(_latin1'\r',providers.address) + 2)),'\r\n',' ') " +
         "   else " +
         "     replace(substr(providers.address,(locate(_latin1'\r',providers.address) + 2),length(providers.address)-5-(locate(_latin1'\r',providers.address) + 2)),'\r\n',' ') " +
-        "   end),1,55) as headingname, " +
+        "   end),1,55) as headingname, providers.address, " +
         "patientinsurance.providernumber, patientinsurance.providergroup, batches.billed, batches.lastbilldate, visits.`date` as dateofservice, items.code, case when patients.ssn=0 then '' else patients.ssn end as ssn, patients.dob, providers.phonenumber, providers.extension, " +
         "(charges.chargeamount*charges.quantity)-ifnull((select sum(amount) from payments where chargeid=charges.id),0) AS delinquent " +
         "from batches " +
@@ -68,7 +73,7 @@ String myQuery="select providers.id as providerid, patients.id as patientid, bat
     if (!providerId.equals("0")) {
         myQuery += " and batches.provider = " + providerId;
     }
-    myQuery += " order by providers.name, CONCAT(patients.lastname, patients.firstname)";
+    myQuery += " order by providers.name, providers.address, CONCAT(patients.lastname, patients.firstname)";
     ResultSet insuranceRs=io.opnRS(myQuery);
 
     ResultSet agingItemRs=io.opnRS("select * from agingitems order by seq");
@@ -84,6 +89,8 @@ String myQuery="select providers.id as providerid, patients.id as patientid, bat
     double [] grandTotals = new double[ageItemHeading.size()];
 
     Hashtable providers=new Hashtable();
+
+    out.print("<input type=\"button\" name=\"print_btn\" value=\"print\" onclick=\"window.print();\" class=\"btn navStuff\" >");
 %>
 <%@include file="insurance_aging_body.jsp" %>
 <%

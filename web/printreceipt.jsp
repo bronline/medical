@@ -39,11 +39,13 @@
         Hashtable checks=new Hashtable();
 
         String selectionQuery = "select payments.id, payments.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, " +
-                                "checknumber, amount, chargeid, provider, parentpayment, originalamount, payments.patientid " +
+                                "payments.checknumber, payments.amount, payments.chargeid, payments.provider, payments.parentpayment, " +
+                                "payments.originalamount, payments.patientid " +
                                 "from payments " +
                                 "left join charges on charges.id=chargeid " +
                                 "left join visits on visits.id=charges.visitid " +
-                                "left join providers on providers.id=payments.provider" +
+                                "left join providers on providers.id=payments.provider " +
+                                "left join payments parent on parent.id=payments.parentpayment" + 
                                 selectedPayments;
 
         ResultSet patientRs=io.opnRS("select * from soapnoteheader where id=" + patient.getId());
@@ -52,7 +54,7 @@
         patientRs.next() ;
 
         // Run the query for the payment to see if the payment is part of an unapplied payment or check
-        ResultSet selectionRs=io.opnRS(selectionQuery + " order by payments.date, visits.date");
+        ResultSet selectionRs=io.opnRS(selectionQuery + " order by parent.`date`, visits.`date`");
 
         while(selectionRs.next()) {
             unappliedPayment=false;
@@ -62,14 +64,16 @@
                 ResultSet paymentRs=io.opnRS(selectionQuery + " and payments.id=" + selectionRs.getString("payments.id"));
                 if(!selectionRs.getString("checknumber").equals("") && selectionRs.getInt("chargeId") != 0 && selectionRs.getInt("parentPayment") == 0) {
                    balanceQuery = "select payments.id, payments.date as paymentdate, payments.date, ifnull(name, 'Cash') as name, " +
-                                  "checknumber, amount, chargeid, provider, parentpayment " +
+                                  "payments.checknumber, payments.amount, payments.chargeid, payments.provider, payments.parentpayment " +
                                   "from payments " +
                                   "left join charges on charges.id=chargeid " +
                                   "left join visits on visits.id=charges.visitid " +
                                   "left join providers on providers.id=payments.provider " +
-                                  "where provider=" + selectionRs.getString("provider") +
-                                  " and checknumber='" + selectionRs.getString("checknumber") + "' " +
-                                  "and payments.patientid=" + selectionRs.getString("patientid") + " order by payments.date, visits.date";
+                                  "left join payments parent on parent.id=payments.parentpayment " +
+                                  "where payments.provider=" + selectionRs.getString("provider") +
+                                  " and payments.checknumber='" + selectionRs.getString("checknumber") + "' " +
+                                  "and payments.patientid=" + selectionRs.getString("patientid") + " order by parent.`date`, visits.`date`";
+
                    paymentRs=io.opnRS(balanceQuery);
                    checks.put(selectionRs.getString("checknumber"), selectionRs.getString("id"));
 
@@ -82,16 +86,8 @@
                                   "left join visits on visits.id=charges.visitid " +
                                   "left join providers on providers.id=payments.provider " +
                                   "left join payments parent ON parent.id=payments.parentpayment " +
-                                  "where payments.parentpayment=" + selectionRs.getString("parentpayment") + "order by parent.paymentdate, visits.date";
-/*
-                   balanceQuery = "select p.id, p.date, parent.date as paymentdate, " +
-                             "ifnull(name, 'Cash') as name, p.checknumber, p.amount, " +
-                             "p.chargeid, p.provider, p.parentpayment " +
-                             "from payments p " +
-                             "left join providers on providers.id=p.provider " +
-                             "left join payments parent ON parent.id=p.parentpayment " +
-                             "where p.parentpayment="+ selectionRs.getString("id");
-*/
+                                  "where payments.parentpayment=" + selectionRs.getString("parentpayment") + " order by parent.`date`, visits.`date`";
+
                    // This is a child of an unapplied payment so we need to get the original amount of the unapplied payment
                    ResultSet tmpRs=io.opnRS("select originalamount from payments where id=" + selectionRs.getString("parentpayment"));
                    if(tmpRs.next()) {
@@ -104,11 +100,6 @@
                    paymentRs=io.opnRS(balanceQuery);
                    parentPayments.put(selectionRs.getString("parentpayment"), selectionRs.getString("id"));
                 } else if(selectionRs.getInt("chargeid") == 0) {
-/*
-                    balanceQuery = "select payments.id, date as paymentdate, date, ifnull(name, 'Cash') as name, checknumber, amount, chargeid, provider, parentpayment from payments " +
-                                  "left join providers on providers.id=payments.provider " +
-                                  "where parentpayment=" + selectionRs.getString("id");
-*/
                      balanceQuery = "select p.id, p.date, parent.date as paymentdate, " +
                              "ifnull(name, 'Cash') as name, p.checknumber, p.amount, " +
                              "p.chargeid, p.provider, p.parentpayment " +
@@ -138,14 +129,6 @@
                 while(paymentRs.next()) {
                    if(currentLine>linesPerPage || currPage == 1) {
                        if(currPage != 1) {
-//                           out.print(htmTb.startRow());
-//                           out.print(htmTb.addCell("<hr>", "colspan=5"));
-//                           out.print(htmTb.endRow());
-
-//                            out.print(htmTb.startRow());
-//                            out.print(htmTb.addCell(getDiagnosisCodes(io, htmTb, patient.getId(), printDetails), "colspan=5"));
-//                            out.print(htmTb.endRow());
-
                            out.print(htmTb.endTable());
                            out.print("<p style='page-break-before: always'>\n");
                        }
@@ -208,7 +191,6 @@
         out.print(htmTb.startRow());
         out.print(htmTb.addCell("", "colspan=2"));
         out.print(htmTb.headingCell("Credit on Account", "class=headingLabel colspan=2"));
-//        out.print(htmTb.addCell(tools.utils.Format.formatCurrency(remainingUnapplied), htmTb.RIGHT, "class=openItem"));
         out.print(htmTb.addCell(tools.utils.Format.formatCurrency(patient.getUnappliedPaymentTotal()), htmTb.RIGHT, "class=openItem colspan=1"));
         out.print(htmTb.endRow());
 
@@ -223,6 +205,7 @@
         out.print(htmTb.endTable());
 
         patientRs.close();
+
     }
 %>
 <%! public String printHeadings(RWHtmlTable htmTb, ResultSet patientRs, ResultSet envRs) throws Exception {

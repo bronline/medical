@@ -118,7 +118,6 @@
     htmTb.setWidth("600");
 
 // Set the SQL statements for the insurance providers and patients
-//    String insQuery="select 0 as prid, '*ALL' as name union select id as prid, name from providers where not reserved order by name";
     String insQuery="select 0 as prid, '*ALL' as name union " +
             "select id as providerid, " +
             "substr(concat(name,' - ',REPLACE(substr(address,1,locate(_latin1'\r',address)-1),'\r\n',''),' - ', " +
@@ -244,17 +243,11 @@
     whereClause = "where (balance<>0 or (balance=0 and assignment=0)) ";
 
     if (patientId>0) {
-//        whereClause += " and b.patientId=" + patientId;
         whereClause += " and patientid=" + patientId;
     }
     if ((batchId == null || batchId.equals("0")) && !providerId.equals("0")) {
-//        whereClause += " and b.patientId in (select patientid from patientinsurance where primaryprovider=1 and providerid=" + providerId + " and active)";
         whereClause += " and patientId in (select patientid from patientinsurance where primaryprovider=1 and providerid=" + providerId + " and active) ";
     }
-
-//    whereClause += " and b.date >= '" + Format.formatDate(startDate, "yyyy-MM-dd") + "' " +
-//                   " and b.date <= '" + Format.formatDate(endDate, "yyyy-MM-dd") + "' " +
-//                   " and d.billinsurance ";
 
     whereClause += " and date between '" + Format.formatDate(startDate, "yyyy-MM-dd") + "' and '" + Format.formatDate(endDate, "yyyy-MM-dd") + "' ";
 
@@ -282,20 +275,8 @@
     String url         = "billing.jsp?checkNumber="+checkNumber+"&checkAmount="+checkAmount+"&startDate="+startDate+"&endDate="+endDate;
     String title       = "";
 
-    //out.print(myQuery);
-
     if ((patientId==0 && providerId.equals("0"))) {
-/*
-        myQuery="select " +
-                "providerid, " +
-                "concat('<input type=checkbox checked name=chk', providerId, '>') as fld, name , " +
-                "count(*), sum(balance) as billable " +
-                "from ( " +
-                baseSQL +
-                ") f " + whereClause +
-                "and not exists (select patientid from nonbillableitems where patientid=f.patientid and providerid=f.providerid and itemid=f.itemid) " +
-                "group by providerid, name order by name";
-*/
+
         myQuery = "CALL rwcatalog.prGetBillingByPayer('" + databaseName + "', " + patientId + ", " + providerId + ", '" + Format.formatDate(startDate, "yyyy-MM-dd") + "','" + Format.formatDate(endDate, "yyyy-MM-dd") + "')";
     // out.print(myQuery);
     // Create an RWFiltered List object
@@ -307,7 +288,6 @@
         lst.setCellPadding("3");
         lst.setAlternatingRowColors("#ffffff", "#cccccc");
         lst.setRoundedHeadings("#030089", "");
-    //    lst.setTableHeading(title);
         // Set specific column widths
         String [] cellWidths = {"0", "50", "420", "100", "100"};
         String [] cellHeadings = { "", "Select", "Payer", "Charges", "Amount" };
@@ -321,9 +301,10 @@
         iForm.append(frm.button("Generate Batches","class=button onclick=generateBatch(\"generatebatches.jsp\")","Filter"));
         iForm.append("<input type=button value='invert selection' onClick=invertSelection() class=button>");
 
-        //        iForm.append("<br>Select a provider and/or a patient<br>");
     } else {
-    // Create a new billing form
+
+        myQuery = "CALL rwcatalog.prGetChargesForBillingBatch('" + databaseName + "', " + patientId + ", " + providerId + ", '" + Format.formatDate(startDate, "yyyy-MM-dd") + "','" + Format.formatDate(endDate, "yyyy-MM-dd") + "')";
+
         htmTb.setWidth("650");
         RWInputForm pFrm = new RWInputForm();
         pFrm.setFormName("billing");

@@ -12,8 +12,8 @@
 
     var e
 
-    function printAgingReport(providerId) {
-        window.open("print_insurance_aging.jsp?printReport=Y&providerId=" + providerId,"AgingReport");
+    function printAgingReport(providerId,patientType) {
+        window.open("print_insurance_aging.jsp?printReport=Y&providerId=" + providerId+"&patientType="+patientType,"AgingReport");
     }
 
     function setDivPosition(e, what) {
@@ -408,6 +408,7 @@ String delinquentDays = request.getParameter("delinquentDays");
 String patientTypeSelection = "";
 String pType = request.getParameter("patientType");
 
+
 if (showZeroBalances==null) showZeroBalances="false";
 if (providerId==null) providerId="0";
 if (delinquentDays==null) delinquentDays="0";
@@ -427,7 +428,7 @@ String myQuery="select providers.id as providerid, patients.id as patientid, bat
         "     replace(substr(providers.address,(locate(_latin1'\r',providers.address) + 2),length(providers.address)-10-(locate(_latin1'\r',providers.address) + 2)),'\r\n',' ') " +
         "   else " +
         "     replace(substr(providers.address,(locate(_latin1'\r',providers.address) + 2),length(providers.address)-5-(locate(_latin1'\r',providers.address) + 2)),'\r\n',' ') " +
-        "   end),1,55) as headingname, " +
+        "   end),1,55) as headingname, providers.address, " +
         "patientinsurance.providernumber, patientinsurance.providergroup, batches.billed, batches.lastbilldate, visits.`date` as dateofservice, items.code, case when patients.ssn=0 then '' else patients.ssn end as ssn, patients.dob, providers.phonenumber, providers.extension, " +
         "(charges.chargeamount*charges.quantity)-ifnull((select sum(amount) from payments where chargeid=charges.id),0) AS delinquent " +
         "from batches " +
@@ -439,7 +440,6 @@ String myQuery="select providers.id as providerid, patients.id as patientid, bat
         "left join patients on patients.id=visits.patientid " +
         "left join patientinsurance on patientinsurance.patientid=patients.id and patientinsurance.providerid=batches.provider " +
         "where (charges.chargeamount*charges.quantity)-ifnull((select sum(amount) from payments where chargeid=charges.id),0)>0 " +
-//        "and ifnull((select sum(amount) from payments where chargeid=charges.id),0)=0 " +
         "and not complete " +
         patientTypeSelection +
         "and DATEDIFF(current_date,billed)>=" + delinquentDays;
@@ -485,7 +485,7 @@ if (request.getMethod().equals("POST")) {
     if (!providerId.equals("0")) {
         myQuery += " and batches.provider = " + providerId;
     }
-    myQuery += " order by providers.name, CONCAT(patients.lastname, patients.firstname)";
+    myQuery += " order by providers.name, providers.address, CONCAT(patients.lastname, patients.firstname)";
     ResultSet insuranceRs=io.opnRS(myQuery);
 
     ResultSet agingItemRs=io.opnRS("select * from agingitems order by seq");
@@ -506,7 +506,7 @@ if (request.getMethod().equals("POST")) {
 <%
 //    out.print(htmTb.endTable());
 
-    out.print("<br><input type=\"button\" onClick=\"printAgingReport(" + providerId + ")\" value=\"print\" class=\"button\">");
+    out.print("<br><input type=\"button\" onClick=\"printAgingReport(" + providerId + ",'" + pType + "')\" value=\"print\" class=\"button\">");
     agingItemRs.close();
     insuranceRs.close();
 

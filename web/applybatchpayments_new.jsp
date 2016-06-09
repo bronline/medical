@@ -9,9 +9,9 @@
 <title>Apply Payments</title>
 
 <script language="javascript">
-  function postPayments(patientId,checkNumber,batchId) {
-    var url = "http://chiropracticeonline.net/medical/applyinsurancepayments.jsp?patientId=" + patientId + "&batchId=" + batchId + "&checkNumber=" + checkNumber + "&batchesOnly=Y";
-    window.open(url,"patientpayment","width=800,height=600,target=_blank");
+  function postPayments(patientId,checkNumber,batchId,providerId) {
+    var url = "applyinsurancepayments.jsp?patientId=" + patientId + "&batchId=" + batchId + "&checkNumber=" + checkNumber + "&batchesOnly=Y&providerId="+providerId;
+    window.open(url,"patientpayment","width=850,height=625,target=_blank");
   }
   function refreshParentPage(where) {
     if(where != null) {
@@ -147,7 +147,7 @@ self.close();
         iForm.append(htmTb.addCell("$"+pRs.getString("charges"), RWHtmlTable.RIGHT, "width=100"));
         iForm.append(htmTb.addCell("$"+pRs.getString("credits"), RWHtmlTable.RIGHT, "width=100"));
         iForm.append(htmTb.addCell("$"+pRs.getString("balance"), RWHtmlTable.RIGHT, "width=100"));
-        iForm.append(htmTb.addCell("<input type=\"button\" value=\"post payments\" class=\"button\" onClick=\"postPayments(" + pRs.getInt("patientId") + ",'" + checkNumber + "'," + batchId + ")\" />", RWHtmlTable.CENTER, "width=100"));
+        iForm.append(htmTb.addCell("<input type=\"button\" value=\"post payments\" class=\"button\" onClick=\"postPayments(" + pRs.getInt("patientId") + ",'" + checkNumber + "'," + batchId + "," + providerId + ")\" />", RWHtmlTable.CENTER, "width=100"));
         iForm.append(htmTb.endRow());
         if (rowColor.equals("lightgrey")) {
             rowColor="#cccccc";

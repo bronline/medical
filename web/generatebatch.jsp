@@ -118,7 +118,7 @@
                 thisBatchCharge.setChargeId(supplementalRs.getInt("id"));
                 thisBatchCharge.update();
            }
-        } else {
+        } else if(!wroteCharges) {
             PreparedStatement deleteBatchPs = io.getConnection().prepareStatement("delete from batches where id = " + thisBatch.getId());
             deleteBatchPs.execute();
         }            

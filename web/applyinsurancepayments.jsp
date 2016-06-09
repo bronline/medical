@@ -3,10 +3,6 @@
     Created on : Nov 15, 2010, 3:54:33 PM
     Author     : rwandell
 --%>
-
-<%@page contentType="text/html" pageEncoding="windows-1252"%>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-   "http://www.w3.org/TR/html4/loose.dtd">
 <%@include file="globalvariables.jsp" %>
 
 <title>Apply Payments</title>
@@ -222,7 +218,7 @@ self.close();
     String startDate = "01/01/1901";
     String endDate = "12/31/2100";
     String paymentDate = Format.formatDate(new java.util.Date(), "MM/dd/yyyy");
-    String providerId = "2";
+    String providerId = "";
     String checkNumber = "";
     String checkAmount = "0.00";
     String patientName = "";
@@ -349,6 +345,11 @@ self.close();
 // Build the form now
     iForm.append(frm.startForm());
 
+    // Patient Attention Message
+    iForm.append("<fieldset style=\"width: 750px; border: 1px solid #666; padding: 10px;\"><legend><b>Patient Attention Message</b></legend>");
+    iForm.append("<textarea id=\"patientAttention\" name=\"patientAttention\" rows=\"3\" cols=\"175\" class=\"tAreaText\">" + patient.getString("attentionmsg") + "</textarea>");
+    iForm.append("</fieldset>");
+    
     ResultSet iMsgRs = io.opnRS("SELECT p.name, ifnull(i.notes,'') as notes FROM patientinsurance i left join providers p on i.providerid=p.id where i.patientid=" + patient.getId() + " and i.providerid=" + providerId);
     if(iMsgRs.next()) {
         iForm.append("<fieldset style=\"width: 750px; border: 1px solid #666; padding: 10px;\"><legend><b>Notes for " + iMsgRs.getString("name") + "</b></legend>");
@@ -365,23 +366,7 @@ self.close();
     String supplementalInsurances = getSupplementalInsurance(io, patient.getId(), providerId, batchId);
     if(!supplementalInsurances.trim().equals("")) {
         iForm.append("<fieldset style=\"width: 750px; border: 1px solid #666; padding: 10px;\"><legend><b>Secondary Insurances</b></legend>");
-//        iForm.append(htmTb.startTable("750"));
-//        iForm.append(htmTb.startRow());
-    //    iForm.append(htmTb.addCell("<b>Start Date", "width=\"100px\""));
-    //    iForm.append(htmTb.addCell(frm.date(startDate,"startDate","width=\"175px\" class=\"tBoxText\"")));
-//        iForm.append(htmTb.startCell(""));
-//        iForm.append("<div style=\"height: 30px; width: 400px; overflow: auto;\">");
         iForm.append(supplementalInsurances);
-//        iForm.append("</div>");
-//        iForm.append(htmTb.endCell());
-//        iForm.append(htmTb.endRow());
-
-    //    iForm.append(htmTb.startRow());
-    //    iForm.append(htmTb.addCell("<b>End Date", "width=\"100px\""));
-    //    iForm.append(htmTb.addCell(frm.date(endDate,"endDate","width=\"175px\" class=\"tBoxText\"")));
-//        iForm.append(htmTb.endRow());
-
-//        iForm.append(htmTb.endTable());
         iForm.append("</fieldset>");
     }
 
@@ -565,16 +550,14 @@ self.close();
     if(batchId == null || batchId.equals("") || today == null || today.equals("")) {
         session.setAttribute("returnUrl", "applypayments.jsp");
     }
-%>
-<%
-    if(multiplePayments == null && request.getParameter("posted")!=null && request.getParameter("posted").equalsIgnoreCase("Y")) { %>
-        <body onLoad="self.close()">
-        <body>
-<%  } else if(multiplePayments != null && request.getParameter("posted") != null) {
+
+    if(multiplePayments == null && request.getParameter("posted")!=null && request.getParameter("posted").equalsIgnoreCase("Y")) { 
+        out.print("<body onLoad=\"self.close()\">");
+  } else if(multiplePayments != null && request.getParameter("posted") != null) {
         response.sendRedirect("applymultiplepayments.jsp");
-    } else {   %>
-        <body onUnLoad="refreshParentPage('<%= (String)session.getAttribute("myParent") %>')">
-<%  }
+    } else {  
+        out.print("<body onUnLoad=\"refreshParentPage('" + (String)session.getAttribute("myParent") + "')\">");
+  }
 %>
 
 </body>

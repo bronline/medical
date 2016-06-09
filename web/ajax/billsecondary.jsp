@@ -89,7 +89,6 @@ function billSupplemental(batchId,providerId,patientId) {
 //            chargePs.setString(3, patientId);
             chargePs.execute();
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return newBatchId;
@@ -99,8 +98,10 @@ function billSupplemental(batchId,providerId,patientId) {
         StringBuffer s = new StringBuffer();
  
         ResultSet lRs=io.opnRS("SELECT * FROM patientinsurance pi LEFT JOIN providers p ON p.id=pi.providerid WHERE active and patientid=" + patientId + " and providerid<>" + providerId);
-        PreparedStatement lPs=io.getConnection().prepareStatement("select * from batches a left join batchcharges b on b.batchid=a.id where b.chargeid in (select chargeid from batchcharges where batchid=?) and a.provider=?");
+//        PreparedStatement lPs=io.getConnection().prepareStatement("select * from batches a left join batchcharges b on b.batchid=a.id where b.chargeid in (select chargeid from batchcharges where batchid=?) and a.provider=?");
+        PreparedStatement lPs=io.getConnection().prepareStatement("select * from batches a left join batchcharges b on b.batchid=a.id where b.chargeid in (select c.id from charges c left join visits v on v.id=c.visitid where c.id in (select chargeid from batchcharges where batchid=?) and v.patientid=?) and a.provider=?");
         lPs.setInt(1, thisBatchId);
+        lPs.setString(2, patientId);
         if(lRs.next()) {
             lRs.beforeFirst();
             s.append("<div style=\"float: right; font-weight: bold; cursor: pointer;\" onClick=\"closeSupplementalInsuranceBubble()\">close</div>");
@@ -108,7 +109,7 @@ function billSupplemental(batchId,providerId,patientId) {
             while(lRs.next()) {
                 s.append("<tr>");
                 s.append("<td width=\"50%\"><b>" + lRs.getString("name") + "</b></td>");
-                lPs.setInt(2, lRs.getInt("providerid"));
+                lPs.setInt(3, lRs.getInt("providerid"));
                 ResultSet pRs=lPs.executeQuery();
                 if(!pRs.next()) {
                     s.append("<td width=\"20%\">Bill all dates&nbsp;&nbsp;<input type=\"checkbox\" id=\"chk" + lRs.getString("providerid") + "\" name=\"chk" + lRs.getString("providerid") + "\" checked></td>");
@@ -127,5 +128,4 @@ function billSupplemental(batchId,providerId,patientId) {
         return s.toString();
     }
 %>
-
 

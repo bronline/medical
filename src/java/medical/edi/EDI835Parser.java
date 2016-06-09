@@ -8,10 +8,13 @@ package medical.edi;
 import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.pb.x12.Cf;
 import org.pb.x12.Loop;
 import org.pb.x12.Parser;
@@ -35,12 +38,31 @@ public abstract class EDI835Parser {
         Cf cf835 = loadCf(); // candidate for dependency injection
         Parser parser = new X12Parser(cf835);
         Map reasonMap = new HashMap();
+        
+        class ClaimReason {
+            public String id;
+            public String description;
+            public int reasonId;
+            public boolean setBatchStatus;
+            
+            public ClaimReason(ResultSet rs) {
+                try {
+                    id = rs.getString("id");
+                    description = rs.getString("description");
+                    reasonId = rs.getInt("reasonid");
+                    setBatchStatus = rs.getBoolean("setbatchstatus");
+                } catch (SQLException ex) {
+                    Logger.getLogger(EDI835Parser.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
 
         try {
             RWConnMgr io = new RWConnMgr("localhost", databaseName, "rwtools", "rwtools", RWConnMgr.MYSQL);
             ResultSet eobReasonRs = io.opnRS("SELECT * FROM rwcatalog.claimadjustmentreasons");
             while(eobReasonRs.next()) {
-                reasonMap.put(eobReasonRs.getString("id"), eobReasonRs.getInt("reasonid"));
+                ClaimReason cr = new ClaimReason(eobReasonRs);
+                reasonMap.put(eobReasonRs.getString("id"), cr);
             }
             
             PreparedStatement eobChgPs = io.getConnection().prepareStatement("call rwcatalog.prGetChargeForEOBPayment(?,?,?,?);");
@@ -154,7 +176,7 @@ public abstract class EDI835Parser {
                                     }
                                     // chargeid, paymentid, reasonid, amount, `date`
                                     if(reasonMap.containsKey(service.getElement(2))) {
-                                        int eobReasonId = (Integer)reasonMap.get(service.getElement(2));
+                                        int eobReasonId = ((ClaimReason)reasonMap.get(service.getElement(2))).reasonId;
                                         excPs.setInt(1, chargeId);
                                         excPs.setInt(2, 0);
                                         excPs.setInt(3, eobReasonId);
@@ -171,7 +193,7 @@ public abstract class EDI835Parser {
                                     }
                                     
                                     if(reasonMap.containsKey(service.getElement(2))) {
-                                        int eobReasonId = (Integer)reasonMap.get(service.getElement(2));
+                                        int eobReasonId = ((ClaimReason)reasonMap.get(service.getElement(2))).reasonId;
                                         excPs.setInt(1, chargeId);
                                         excPs.setInt(2, 0);
                                         excPs.setInt(3, eobReasonId);
@@ -179,6 +201,13 @@ public abstract class EDI835Parser {
                                         excPs.setString(5, Format.formatDate(paymentDate,"yyyy-MM-dd"));
                                         
                                         excPs.execute();
+                                    }
+                                }
+                                if(((ClaimReason)reasonMap.get(service.getElement(2))).setBatchStatus)  {
+                                    ResultSet pEOBRs = io.opnRS("CALL rwcatalog.prGetPatientInfoForEOB('" + io.getLibraryName() + "'," + chargeId + ")");
+                                    if(pEOBRs.next()) {
+                                        batchStatus += pEOBRs.getString("accountinfo");
+                                        batchStatus += ": " + ((ClaimReason)reasonMap.get(service.getElement(2))).description + "\n";
                                     }
                                 }
                             } else if(service.getElement(0).equals("DTM")) {
@@ -194,7 +223,7 @@ public abstract class EDI835Parser {
                                     deductibleAmount += Double.parseDouble(service.getElement(2));
                                 } else {
                                     if(reasonMap.containsKey(service.getElement(1))) {
-                                        int eobReasonId = Integer.parseInt((String)reasonMap.get(service.getElement(1)));
+                                        int eobReasonId = ((ClaimReason)reasonMap.get(service.getElement(1))).reasonId;
                                         excPs.setInt(1, chargeId);
                                         excPs.setInt(2, 0);
                                         excPs.setInt(3, eobReasonId);
