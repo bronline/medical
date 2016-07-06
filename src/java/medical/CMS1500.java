@@ -354,6 +354,7 @@ public class CMS1500 extends Document {
         doBox22();
         doBox23();
         doBox25();
+        doBox26();
         doBox27();
         doBox31();
         doBox32();
@@ -1078,6 +1079,14 @@ public class CMS1500 extends Document {
                     setDocumentFieldValue("taxidssn", "X");
                 }
             }
+        }
+    }
+    
+    private void doBox26() {
+        try {
+            setDocumentFieldValue("accountnumber", patientRs.getString("accountnumber") + "-" + this.batchId);
+        } catch (SQLException ex) {
+            Logger.getLogger(CMS1500.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

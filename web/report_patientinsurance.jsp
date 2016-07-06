@@ -9,9 +9,9 @@
 <%
     RWFilteredList lst = new RWFilteredList(io);
 
-    String [] cw = { "0", "100", "100", "100", "200","80" };
-    String [] ch = { "", "Last Name", "First Name", "Provider Number", "Payer Name", "Active" };
-    String myQuery = "SELECT patients.id as patientid, lastname, firstname, insuranceinformation.providernumber, ifnull(ProviderName,'Cash') as PayerName, (case when active then 'Yes' else 'No' end) as ActivePatient " +
+    String [] cw = { "0", "100", "100", "100", "100", "200","80" };
+    String [] ch = { "", "Last Name", "First Name", "Provider Number", "Group #", "Payer Name", "Active" };
+    String myQuery = "SELECT patients.id as patientid, lastname, firstname, insuranceinformation.providernumber, insuranceinformation.providergroup, ifnull(ProviderName,'Cash') as PayerName, (case when active then 'Yes' else 'No' end) as ActivePatient " +
                     "FROM patients " +
                     "left join insuranceinformation on patients.id=patientid " +
                     "where lastname<>'' " +
@@ -21,7 +21,7 @@
     lst.setColumnWidth(cw);
     lst.setFormMethod("POST");
     lst.setDivHeight(300);
-    lst.setTableWidth("600");
+    lst.setTableWidth("700");
     lst.setTableBorder("0");
     lst.setUseCatalog(true);
 

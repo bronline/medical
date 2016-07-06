@@ -1506,7 +1506,14 @@ public class Patient extends MedicalResultSet {
         htmTb.setWidth("135");
         htmTb.setBorder("0");
         StringBuffer sB = new StringBuffer();
-
+        sB.append("<div id=\"patientSearchBubble\" style=\"padding-top: 5px; padding-left: 5px; padding-right: 5px; border-color: transparent; background-color: #ffffff; height: 48; width: 135; border-radius: 10px;\">");
+        sB.append("<form name=\"Search\" id=\"Search\" method=\"GET\" action=\"/medical/patientmaint.jsp\">");
+        sB.append("<input type=\"search\" name=\"srchString\" id=\"srchString\" class=\"tBoxText\" style=\"width: 120px;\" onKeyup=\"doCompletion(this)\" placeholder=\"patient search\"></br>");
+        sB.append("<div>Show Active Only&nbsp;&nbsp;<input type=\"CHECKBOX\" name=\"activeOnly_cb\" id=\"activeOnly_cb\" onClick=\"setCheckBoxValue(this);\" CHECKED></div>");
+        sB.append("<input type=\"hidden\" id=\"activeOnly\" name=\"activeOnly\" value=\"true\">");
+        sB.append("</form>");
+        sB.append("</div>");
+/*
 //        sB.append("<div id='patientSearchBubble'>");
         sB.append(htmTb.startTable());
         sB.append(inputFrm.startForm());
@@ -1523,6 +1530,8 @@ public class Patient extends MedicalResultSet {
 
 //        return htmTb.getFrame(htmTb.BOTH, "", "white", 1, sB.toString());
         return InfoBubble.getBubble("roundrect", "patientSearchBubble", "135", "38", "#ffffff", sB.toString());
+*/
+        return sB.toString();
     }
     public String getSearchResults(String srchString, String rowUrl, String idField) throws Exception {
         return getSearchResults(srchString, rowUrl, idField, true);

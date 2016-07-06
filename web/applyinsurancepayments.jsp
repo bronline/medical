@@ -407,7 +407,13 @@ self.close();
                       "group by patientid, chargeid) e on a.id=e.chargeid ";
     }
 
-    ResultSet eRs=io.opnRS("SELECT 0 as reasonid, ' ' as description union select id as reasonid, description from eobreasons");
+    String eobReasonQuery = "SELECT 0 as reasonid, '' as description "
+            + "union "
+            + "SELECT id as reasonid, description FROM eobreasons e "
+            + "union "
+            + "select reasonid, concat(id,'-',left(description, 40)) as description from rwcatalog.claimadjustmentreasons where id not in ('1','2','3','27')";
+    //ResultSet eRs=io.opnRS("SELECT 0 as reasonid, ' ' as description union select id as reasonid, description from eobreasons");
+    ResultSet eRs=io.opnRS(eobReasonQuery);
 
     myQuery = myQuery + whereClause + " order by a.id";
 
