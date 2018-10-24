@@ -116,7 +116,7 @@ self.close();
     iForm.append(frm.hidden(checkAmount,"checkAmount"));
 
 // Now, tack on the filtered list containing all patients that may qualify to have their charges paid by this check
-    myQuery     = "CALL rwcatalog.prGetPatientsInBatch('" + io.getLibraryName() + "'," + batchId + ")";
+    myQuery     = "CALL rwcatalog.prGetPatientsFromBillingBatch('" + io.getLibraryName() + "'," + batchId + ")";
     
     String url         = "applybatchpayments.jsp?checkNumber="+checkNumber+"&checkAmount="+checkAmount+"&startDate="+startDate+"&endDate="+endDate;
     String title       = "";
@@ -156,7 +156,6 @@ self.close();
         }
         // Hidden Date Field
         iForm.append(frm.hidden(Format.formatDate(paymentDate,"yyyy-MM-dd"), "date"+chargeId));
-
     }
     iForm.append(htmTb.endTable());
     iForm.append("</div>");

@@ -1,4 +1,4 @@
-<%@include file="template/pagetop.jsp" %>
+<%@include file="/template/pagetop.jsp" %>
 <script type="text/javascript" src="../js/jQuery.js"></script>
 <script>
 function printBills(patientId) {
@@ -45,10 +45,10 @@ function previewBill(batchId,patientId) {
   window.open('previewbill.jsp?batchId='+batchId+'&patientId='+patientId,'CreateBatch','address=no,scrollbars=yes');
 }
 function postPayment(batchId, providerId) {
-  window.open('paymentdetail.jsp?id=0&batchId='+batchId+'&providerId='+providerId,'PostPayment','width=800,height=650,scrollbars=no,left=100,top=100');
+  window.open('paymentdetail.jsp?id=0&batchId='+batchId+'&providerId='+providerId,'PostPayment','width=900,height=750,scrollbars=no,left=100,top=100');
 }
 function postPIPPayment(batchId, providerId) {
-  window.open('paymentdetail.jsp?id=0&batchId='+batchId+'&providerId='+providerId+'&pipPayment=Y','PostPayment','width=850,height=650,scrollbars=no,left=100,top=100');
+  window.open('paymentdetail.jsp?id=0&batchId='+batchId+'&providerId='+providerId+'&pipPayment=Y','PostPayment','width=900,height=750,scrollbars=no,left=100,top=100');
 }
 function removeFromBatch(batchId,patientId) {
     var action="ajax/removechargesfrombatch.jsp?batchId="+batchId+"&patientId="+patientId;
@@ -104,145 +104,62 @@ try {
     if(patient.next()) {
         visit.setId(0);
 
-        /*
-        String myQuery     = "SELECT e.id, batchid, providers.name, " + 
-                                "concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
-                                "case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then " +
-                                "concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"go\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
-                                "concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-                                "concat('<input type=button name=rmvBtn onClick=removeFromBatch(',batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
-                                "concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-                                "DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
-                                "DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
-                                "DATE_FORMAT(billed, '%m/%d/%Y') as billed, " +
-                                "DATE_FORMAT(lastbilldate, '%m/%d/%Y') as lastbilled, " +
-                                "count(*) charges FROM batchcharges a join charges b on a.chargeid=b.id " +
-                                "join visits c on b.visitid=c.id " +
-                                "join patients d on c.patientid=d.id " +
-                                "join batches e on a.batchid = e.id " +
-                                "join providers on e.provider=providers.id " +
-                                "left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
-                                "left join (SELECT chargeid, SUM(amount) AS paidamount FROM payments py LEFT JOIN providers p ON p.id=py.provider WHERE NOT p.reserved GROUP BY chargeid) p on p.chargeid=c.id " +
-                                "where not a.complete and (b.chargeamount*b.quantity)>p.paidamount and c.patientid=" + patient.getString("id") +
-                                " group by batchid " +
-                                "order by batchid desc";
-        */
-/*
-        String myQuery = "SELECT " +
-                "e.id, " +
-                "a.batchid, " +
-                "providers.name, " +
-                "concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
-                "case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
-                "concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-                "concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
-                "concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-                "DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
-                "DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
-//                "DATE_FORMAT(CASE WHEN lastbilldate is null THEN billed ELSE lastbilldate END, '%m/%d/%Y') as billed, " +
-                "DATE_FORMAT(billed, '%m/%d/%Y') as billed, " +
-                "DATE_FORMAT(lastbilldate, '%m/%d/%Y') as lastbilled, " +
-                "ifnull(charges,0) as charges " +
-                "FROM batchcharges a " +
-                "join charges b on a.chargeid=b.id " +
-                "join visits c on b.visitid=c.id " +
-                "join patients d on c.patientid=d.id " +
-                "join batches e on a.batchid = e.id " +
-                "join providers on e.provider=providers.id " +
-                "left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
-                "left join (SELECT bc.batchid, patientid, COUNT(*) AS charges FROM batchcharges bc LEFT JOIN charges c ON c.id=bc.chargeid LEFT JOIN visits v ON v.id=c.visitid LEFT JOIN (SELECT chargeid, SUM(amount) AS paidamount FROM payments py LEFT JOIN providers p ON p.id=py.provider WHERE NOT py.chargeid<>0 and py.patientid=" + patient.getString("id") + " and p.reserved GROUP BY chargeid) p ON p.chargeid=bc.chargeid WHERE NOT bc.complete AND paidamount IS NULL GROUP BY bc.batchid, patientid) p on p.batchid=a.batchid AND p.patientid=d.id " +
-                "where c.patientid=" + patient.getString("id") + " " +
-                "group by batchid " +
-                "order by batchid desc";
-*/
-/*
-String myQuery = "SELECT " +
-"  e.id," +
-"  a.batchid," +
-"  providers.name," +
-"  concat('<input type=checkbox name=chk', e.id, '>') as fld," +
-"  case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup," +
-"  concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview," +
-"  concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn," +
-"  concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as preview," +
-"  DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate," +
-"  DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate," +
-"  DATE_FORMAT(billed, '%m/%d/%Y') as billed," +
-"  DATE_FORMAT(lastbilldate, '%m/%d/%Y') as lastbilled," +
-"  COUNT(CASE WHEN a.complete THEN 0 ELSE 1 END) as charges" +
-" FROM batchcharges a" +
-" join charges b on a.chargeid=b.id" +
-" join visits c on b.visitid=c.id" +
-" join patients d on c.patientid=d.id" +
-" join batches e on a.batchid = e.id" +
-" join providers on e.provider=providers.id" +
-" left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider" +
-" left join payments pm on pm.patientid=" + patient.getString("id") + " and pm.chargeid=b.id" +
-" where"+
-"  c.patientid=" + patient.getString("id") +
-" group by" +
-"  batchid" +
-//" having SUM(pm.amount)<SUM(b.quantity*b.chargeamount)" +
-" order by" +
-"  batchid desc";
-*/
-
-String myQuery="SELECT " +
-"  e.id, " +
-"  a.batchid, " +
-"  providers.name, " +
-"  concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
-"  case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
-"  concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-"  concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
-"  concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-"  DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
-"  DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
-"  DATE_FORMAT(e.billed, '%m/%d/%Y') as billed, " +
-"  DATE_FORMAT(e.lastbilldate, '%m/%d/%Y') as lastbilled, " +
-"  concat('Open | <a href=\"javascript:closeCharges(',a.batchid,',',d.id,')\">Close</a>') as charges " +
-// "  'Open' as charges " +
-" FROM batches e " +
-" left join batchcharges a on a.batchid=e.id and NOT a.complete " +
-" join charges b on a.chargeid=b.id " +
-" join visits c on b.visitid=c.id " +
-" join patients d on c.patientid=d.id " +
-" join providers on e.provider=providers.id " +
-" left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
-" left join payments pm on pm.patientid=" + patient.getString("id") + " and pm.chargeid=b.id " +
-" where " +
-"  c.patientid=" + patient.getString("id") + " " +
-" group by " +
-"  e.id " +
-"UNION " +
-"SELECT " +
-"  e.id, " +
-"  a.batchid, " +
-"  providers.name, " +
-"  concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
-"  case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
-"  concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-"  concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
-"  concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
-"  DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
-"  DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
-"  DATE_FORMAT(e.billed, '%m/%d/%Y') as billed, " +
-"  DATE_FORMAT(e.lastbilldate, '%m/%d/%Y') as lastbilled, " +
-"  'Complete' as charges " +
-" FROM batches e " +
-" left join batchcharges a on a.batchid=e.id and  a.complete " +
-" join charges b on a.chargeid=b.id " +
-" join visits c on b.visitid=c.id " +
-" join patients d on c.patientid=d.id " +
-" join providers on e.provider=providers.id " +
-" left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
-" left join payments pm on pm.patientid=" + patient.getString("id") + " and pm.chargeid=b.id " +
-" where " +
-"  c.patientid=" + patient.getString("id") + " " +
-" group by " +
-"  e.id " +
-" order by " +
-"  charges desc, id desc";       
+        String myQuery="SELECT id, batchid, name, fld, sup, preview, rmvBtn, postpmt, startdate, enddate, billed, lastbilled, charges from (" +
+        "SELECT " +
+        "  e.id, " +
+        "  a.batchid, " +
+        "  providers.name, " +
+        "  concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
+        "  case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
+        "  concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
+        "  concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
+        "  concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as postpmt, " +
+        "  DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
+        "  DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
+        "  DATE_FORMAT(e.billed, '%m/%d/%Y') as billed, " +
+        "  DATE_FORMAT(e.lastbilldate, '%m/%d/%Y') as lastbilled, " +
+        "  concat('Open | <a href=\"javascript:closeCharges(',a.batchid,',',d.id,')\">Close</a>') as charges " +
+        " FROM batches e " +
+        " left join batchcharges a on a.batchid=e.id and NOT a.complete " +
+        " join charges b on a.chargeid=b.id " +
+        " join visits c on b.visitid=c.id " +
+        " join patients d on c.patientid=d.id " +
+        " join providers on e.provider=providers.id " +
+        " left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
+        " left join payments pm on pm.patientid=" + patient.getString("id") + " and pm.chargeid=b.id " +
+        " where " +
+        "  c.patientid=" + patient.getString("id") + " " +
+        " group by " +
+        "  e.id " +
+        "UNION " +
+        "SELECT " +
+        "  e.id, " +
+        "  a.batchid, " +
+        "  providers.name, " +
+        "  concat('<input type=checkbox name=chk', e.id, '>') as fld, " +
+        "  case when (select count(*) from patientinsurance where c.patientid=d.id)>1 then concat('<input type=button name=btn', e.id, ' onClick=billSecondary(', e.id,',',d.id,') class=button value=\"bill 2nd\" style=\"font-size: 8px; font-weight: normal;\">') else '' end as sup, " +
+        "  concat('<input type=button name=preView', e.id, ' onClick=previewBill(', e.id,',',d.id,') class=button value=\"preview\" style=\"font-size: 8px; font-weight: normal;\">') as preview, " +
+        "  concat('<input type=button name=rmvBtn onClick=removeFromBatch(',a.batchid,',',c.patientid,') class=button value=\"remove\" style=\"font-size: 8px; font-weight: normal;\">') as rmvBtn, " +
+        "  concat('<input type=button name=postPmt onClick=', (case when pi.ispip then 'postPIPPayment' else 'postPayment' end),'(', a.batchid, ',',providers.id,') class=button value=\"post payment\" style=\"font-size: 8px; font-weight: normal;\">') as postpmt, " +
+        "  DATE_FORMAT(min(c.`date`), '%m/%d/%Y') as startdate, " +
+        "  DATE_FORMAT(max(c.`date`), '%m/%d/%Y') as enddate, " +
+        "  DATE_FORMAT(e.billed, '%m/%d/%Y') as billed, " +
+        "  DATE_FORMAT(e.lastbilldate, '%m/%d/%Y') as lastbilled, " +
+        "  'Complete' as charges " +
+        " FROM batches e " +
+        " left join batchcharges a on a.batchid=e.id and a.complete " +
+        " join charges b on a.chargeid=b.id " +
+        " join visits c on b.visitid=c.id " +
+        " join patients d on c.patientid=d.id " +
+        " join providers on e.provider=providers.id " +
+        " left join patientinsurance pi on pi.patientid=d.id and pi.providerid=e.provider " +
+        " left join payments pm on pm.patientid=" + patient.getString("id") + " and pm.chargeid=b.id " +
+        " where " +
+        "  c.patientid=" + patient.getString("id") + " " +
+        " group by " +
+        "  e.id) tmp " +
+        "order by " +
+        "  startdate desc";       
 
         String url         = "bills_d.jsp";
         String title       = "Bills";

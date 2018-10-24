@@ -104,7 +104,7 @@ public class AppointmentPage {
 // 10/24/07 changed to use incrementMinutes variable
 //          thisApptCal.setIncrementMinutes(15);
             thisApptCal.setIncrementMinutes(this.incrementMinutes);
-            thisApptCal.setCellWidth("58");
+            thisApptCal.setCellWidth("%");
             thisApptCal.setTimeURL(url);
             thisApptCal.setScrollURL(url);
             thisApptCal.setScrollTimeIncrements(28);

@@ -21,10 +21,13 @@ function win(apptNum){
     String resourceId=request.getParameter("resourceId");
     boolean onlineAppt=false;
     String appointmentNumber=request.getParameter("apptNum");
+    String apptType="EXISTING";
+    
+    if(session.getAttribute("apptType") != null && session.getAttribute("apptType").equals("NEW")) { apptType = "NEW"; }
     
     int morningStart=6;
     int eveningEnd=18;
-    int increment=15;
+    int increment=10;  
     int apptDepth=1;
     
     String schedule=request.getParameter("schedule");
@@ -84,18 +87,37 @@ function win(apptNum){
             ResultSet dowRs=io.opnRS("select * from dow where " + dayCheck);
             if(dowRs.next()) {
                 ResultSet dayHoursRs=io.opnRS("select * from dayhours where day='" + dayOfWeek + "' and resourceid=" + resRs.getInt("id"));
+                int scheduledAppointments=0;
                 if(dayHoursRs.next()) {
                     increment = dayHoursRs.getInt("incrementminutes");
                     Hashtable apptTimes=new Hashtable();
-                    ResultSet apptRs=io.opnRS("select distinct `time` from appointments where date='" + apptDate + "' and resourceid=" + resRs.getInt("id") + " order by time");
+                    ResultSet apptRs=io.opnRS("select `time`, intervals from appointments where date='" + apptDate + "' and resourceid=" + resRs.getInt("id") + " order by time");
                     while(apptRs.next()) {
                         if(!apptTimes.containsKey(apptRs.getString("time"))) {
                             apptTimes.put(apptRs.getString("time"), "1");
+                            if(apptRs.getInt("intervals") != 1) {
+                                Calendar tmpCal=Calendar.getInstance();
+                                long incrementMills=increment*60000;
+                                setCalendarAttributes(tmpCal, apptDate, apptRs.getString("time"));
+                                long startTime=tmpCal.getTimeInMillis();
+                                long endTimeInMills = tmpCal.getTimeInMillis() + (incrementMills * (apptRs.getInt("intervals")-1));
+                                Calendar endCal = Calendar.getInstance();
+                                endCal.setTimeInMillis(endTimeInMills);
+                                for(long apptTime=startTime; apptTime<=endCal.getTimeInMillis(); apptTime += incrementMills) {
+                                    tmpCal.setTimeInMillis(apptTime);
+                                    if(!apptTimes.containsKey(Format.formatDate(tmpCal.getTime(),"HH:mm:00"))) {
+                                        apptTimes.put(Format.formatDate(tmpCal.getTime(),"HH:mm:00"), "1");
+                                    } else {
+                                        int apptCount = Integer.parseInt((String)apptTimes.get(Format.formatDate(tmpCal.getTime(),"HH:mm:00"))) + 1;
+                                        apptTimes.remove(Format.formatDate(tmpCal.getTime(),"HH:mm:00"));
+                                        apptTimes.put(Format.formatDate(tmpCal.getTime(),"HH:mm:00"),  "" + apptCount);
+                                    }
+                                }
+                            }
                         } else {
-                            String apptCount=(String)apptTimes.get(apptRs.getString("time"));
-                            int currentCount=Integer.parseInt(apptCount);
+                            int apptCount = Integer.parseInt((String)apptTimes.get(apptRs.getString("time"))) + 1;
                             apptTimes.remove(apptRs.getString("time"));
-                            apptTimes.put(apptRs.getString("time"), ""+(currentCount++));
+                            apptTimes.put(apptRs.getString("time"),  "" + apptCount);
                         }
                     }
 
@@ -105,18 +127,29 @@ function win(apptNum){
 
                     Calendar cal=Calendar.getInstance();
 
-                    apptDepth=dayHoursRs.getInt("apptdepth");
+                    if(resRs.getBoolean("allowexpand")) { apptDepth=99; } else { apptDepth=dayHoursRs.getInt("apptdepth"); }
+                    
+                    int appointmentType = 1;
+                    int newIntervals = 1;
+                    if(apptType.equals("NEW")) {
+                        // ResultSet atRs = io.opnRS("SELECT id, defaultincrements FROM appointmenttypes WHERE description='New Patient'");
+                        ResultSet atRs = io.opnRS("SELECT id, defaultincrements FROM appointmenttypes WHERE id=" + env.getInt("newpatappttype"));
+                        if(atRs.next()) {
+                            appointmentType=atRs.getInt("id");
+                            newIntervals=atRs.getInt("defaultincrements");
+                        }
+                    }
 
                     if(dayHoursRs.getInt("morningstart")!=0 && dayHoursRs.getInt("morningend") !=0) {
                         startTime=dayHoursRs.getInt("morningstart");
                         endTime=dayHoursRs.getInt("morningend");
-                        availableAppts.append(getAvailableAppointments(cal, apptTimes, apptDate, startTime, endTime, increment, apptDepth, resRs.getInt("id"),appointmentNumber));
+                        availableAppts.append(getAvailableAppointments(cal, apptTimes, apptDate, startTime, endTime, increment, apptDepth, resRs.getInt("id"),appointmentNumber, newIntervals));
                     }
 
                     if(dayHoursRs.getInt("afternoonstart")!=0 && dayHoursRs.getInt("afternoonend") !=0) {
                         startTime=dayHoursRs.getInt("afternoonstart");
                         endTime=dayHoursRs.getInt("afternoonend");
-                        availableAppts.append(getAvailableAppointments(cal, apptTimes, apptDate, startTime, endTime, increment, apptDepth, resRs.getInt("id"),appointmentNumber));
+                        availableAppts.append(getAvailableAppointments(cal, apptTimes, apptDate, startTime, endTime, increment, apptDepth, resRs.getInt("id"),appointmentNumber, newIntervals));
                     }
 
                     if(availableAppts.length() != 0) {
@@ -159,8 +192,18 @@ function win(apptNum){
             apptTime=apptTime.substring(0,5) + ":00";
         } else {
             int hour=Integer.parseInt(apptTime.substring(0,2));
-            hour +=12;
+            if(hour !=12) { hour +=12; }
             apptTime= hour + ":" + apptTime.substring(3,5) + ":00";
+        }
+        
+        int appointmentType = 1;
+        int newIntervals = 1;
+        if(apptType.equals("NEW")) {
+            ResultSet atRs = io.opnRS("SELECT id, defaultincrements FROM appointmenttypes WHERE description='New Patient'");
+            if(atRs.next()) {
+                appointmentType=atRs.getInt("id");
+                newIntervals=atRs.getInt("defaultincrements");
+            }
         }
         
         Appointment appt=new Appointment(io, 0);
@@ -168,7 +211,8 @@ function win(apptNum){
         appt.setPatientId(patient.getId());
         appt.setDate(java.sql.Date.valueOf(apptDate));
         appt.setTime(java.sql.Time.valueOf(apptTime));
-        appt.setType(1);
+        appt.setType(appointmentType);
+        appt.setIntervals(newIntervals);
         appt.setResourceId(resource);
         appt.update();
 
@@ -185,7 +229,7 @@ function win(apptNum){
 
 %>
 </body>
-<%! public String getAvailableAppointments(Calendar cal, Hashtable apptTimes, String apptDate, int start, int stop, int increment, int apptDepth, int resourceId, String appointmentNumber) {
+<%! public String getAvailableAppointments(Calendar cal, Hashtable apptTimes, String apptDate, int start, int stop, int increment, int apptDepth, int resourceId, String appointmentNumber, int apptLength) {
         StringBuffer appointments = new StringBuffer();
 
         int year=Integer.parseInt(Format.formatDate(apptDate, "yyyy"));
@@ -213,14 +257,35 @@ function win(apptNum){
         cal.set(year,month,day,start,startIncrement,0);
 
         for(long currentTime=cal.getTimeInMillis()+incrementMills; currentTime<=endingTime; currentTime+=incrementMills) {
-            String apptCount=(String)apptTimes.get(Format.formatDate(cal.getTime(),"HH:mm:ss"));
-            int scheduledAppts=1;
-            if(apptCount != null) { scheduledAppts=Integer.parseInt(apptCount); }
+            try {
+                int apptCount=Integer.parseInt((String)apptTimes.get(Format.formatDate(cal.getTime(),"HH:mm:ss")));
+                int scheduledAppts=0;
+    //            if(apptCount != null) { scheduledAppts=1; }
 
-            String key=Format.formatDate(cal.getTime(),"HH:mm:ss");
-            if(!apptTimes.containsKey(key) || (apptTimes.containsKey(key) && scheduledAppts<apptDepth)) {
-                appointments.append("<a href='scheduleappt.jsp?schedule=Y&resourceId=" + resourceId + "&apptDate=" + apptDate + "&apptTime=" + Format.formatDate(cal.getTime(),"hh:mm a") + "&apptNum=" + appointmentNumber + "' style='font-size: 12px; font-weight: bold;'>" + Format.formatDate(cal.getTime(),"hh:mm a") + "</a><br>\n");
-            }
+                String key=Format.formatDate(cal.getTime(),"HH:mm:ss");
+                if(!apptTimes.containsKey(key) || (apptTimes.containsKey(key) && apptCount<apptDepth)) {
+                    if(apptLength != 1) {
+                        int s=0;
+                        long apptTime = cal.getTimeInMillis();
+                        for(long startTime=apptTime; startTime<=currentTime+(incrementMills*apptLength); startTime+=incrementMills) {
+                            s ++;
+                            cal.setTimeInMillis(startTime);
+                            key=Format.formatDate(cal.getTime(),"HH:mm:ss");
+                            if(apptTimes.containsKey(key)) { 
+                                scheduledAppts=0;
+                                break;
+                            }
+                        }
+                        if(scheduledAppts == 1) {
+                            cal.setTimeInMillis(apptTime);
+                            appointments.append("<a href='scheduleappt.jsp?schedule=Y&resourceId=" + resourceId + "&apptDate=" + apptDate + "&apptTime=" + Format.formatDate(cal.getTime(),"hh:mm a") + "&apptNum=" + appointmentNumber + "' style='font-size: 12px; font-weight: bold;'>" + Format.formatDate(cal.getTime(),"hh:mm a") + "</a><br>\n");
+                        }
+    //                    currentTime += incrementMills;
+                    } else {
+                        appointments.append("<a href='scheduleappt.jsp?schedule=Y&resourceId=" + resourceId + "&apptDate=" + apptDate + "&apptTime=" + Format.formatDate(cal.getTime(),"hh:mm a") + "&apptNum=" + appointmentNumber + "' style='font-size: 12px; font-weight: bold;'>" + Format.formatDate(cal.getTime(),"hh:mm a") + "</a><br>\n");
+                    }
+                }
+            } catch (Exception ex) { }
             cal.setTimeInMillis(currentTime);
         }
         return appointments.toString();
@@ -247,7 +312,7 @@ function win(apptNum){
 
                 RWEmail email = new tools.RWEmail(fromAddress, fromName);
 
-                ResultSet pRs = io.opnRS("select firstname, lastname, concat(firstname, ' ',lastname) as name, email from patients where id=" + patientId);
+                ResultSet pRs = io.opnRS("select firstname, lastname, concat(firstname, ' ',lastname) as name, email from patients where useemail and id=" + patientId);
                 if(pRs.next()) {
                     String content = "text/html";
 
@@ -292,5 +357,15 @@ function win(apptNum){
 //        } catch (Exception e) {
 //        }
         return messageSent;
+    }
+
+    public void setCalendarAttributes(Calendar cal, String apptDate, String apptTime) {
+        int year=Integer.parseInt(Format.formatDate(apptDate, "yyyy"));
+        int month=Integer.parseInt(Format.formatDate(apptDate, "MM"));
+        int day=Integer.parseInt(Format.formatDate(apptDate, "dd"));
+
+        int hour = Integer.parseInt(apptTime.substring(0,2));
+        int minute = Integer.parseInt(apptTime.substring(3,5));
+        cal.set(year,month,day,hour,minute);
     }
 %>

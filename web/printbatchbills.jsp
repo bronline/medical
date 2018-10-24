@@ -24,21 +24,21 @@ function win(where,close){
 
     RWConnMgr cms1500Io = new RWConnMgr("localhost", databaseName, "rwtools", "rwtools", RWConnMgr.MYSQL);
     RWConnMgr mapIo = new RWConnMgr("localhost", "rwcatalog", "rwtools", "rwtools", RWConnMgr.MYSQL);
-
+    
     Environment billingEnv = new Environment(batchIo);
     billingEnv.refresh();
 
 // Check to see if a batch ID was passed
     if(request.getParameter("id")!=null) {
         batchId=Integer.parseInt(request.getParameter("id"));
-    }
+    }  
 
     // Set up work variables to process the request parameters
     String parentLocation = (String)session.getAttribute("parentLocation");
     String returnUrl = (String)session.getAttribute("returnUrl");
     String name;
     String close="Y";
-    String documentRoot="C:\\Inetpub\\vhosts\\chiropracticeonline.net\\httpdocs\\medicaldocs\\" + databaseName;
+    String documentRoot="C:\\Program Files (x86)\\Parallels\\Plesk\\var\\tomcat\\psa-webapps\\chiropracticeonline.net\\medicaldocs\\" + databaseName;
     String httpRoot="http://chiropracticeonline.net/medicaldocs/" + databaseName + "/";
     checkDir(documentRoot, thisBatch.getDocumentMap());
 //    checkDir(billingEnv.getString("documentpath"), thisBatch.getDocumentMap());
@@ -46,7 +46,15 @@ function win(where,close){
     String pdfFileName="";
     String textFileName="";
     String str="";
-    String backgroundImage="C:\\Inetpub\\vhosts\\chiropracticeonline.net\\httpdocs\\medicaldocs\\";
+    String backgroundImage="C:\\Program Files (x86)\\Parallels\\Plesk\\var\\tomcat\\psa-webapps\\chiropracticeonline.net\\medicaldocs\\";
+        
+    ResultSet globalRs = mapIo.opnRS("SELECT domainname, applicationpath, documentpath FROM globalsettings limit 1");
+    if(globalRs.next()) {
+        documentRoot=globalRs.getString("documentpath") + databaseName;
+        httpRoot=globalRs.getString("applicationpath").replaceFirst("##DOMAINNAME##", globalRs.getString("domainname"));
+        backgroundImage=globalRs.getString("documentpath");
+    }
+    
     com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.LETTER, 100, 0, 50, 50);
     com.lowagie.text.pdf.PdfWriter writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(documentRoot + "\\sample.pdf"));
 //    com.lowagie.text.pdf.PdfWriter writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(billingEnv.getString("documentpath") + "\\sample.pdf"));
@@ -70,9 +78,11 @@ function win(where,close){
 
 // Generate the bills
     if(batchList == null) {
-        batchQuery = "select * from patientsinbatch where batchid=" + batchId + " order by name";
+//        batchQuery = "select * from patientsinbatch where batchid=" + batchId + " order by name";
+        batchQuery = "CALL rwcatalog.prGetPatientsInBatch('" + io.getLibraryName() + "','" + batchId + "')";
     } else {
-        batchQuery = "select * from patientsinbatch where batchid in(" + batchList + ") order by name";
+//        batchQuery = "select * from patientsinbatch where batchid in(" + batchList + ") order by name";
+        batchQuery = "CALL rwcatalog.prGetPatientsInBatch('" + io.getLibraryName() + "','" + batchList.replaceAll("'","") + "')";
     }
 
     String today        = Format.formatDate(new java.util.Date(), "yyyyMMdd");
@@ -187,7 +197,7 @@ function win(where,close){
     out.print("<body>");
     if(pdfOpen) {
         document.close();
-        PDF.applyBackgroundImage(str + ".pfd", str + "I.pdf" , backgroundImage );
+        PDF.applyBackgroundImage(str + ".pdf", str + "I.pdf" , backgroundImage );
         out.print("<script type=\"text/javascript\">window.open(\"" + httpRoot +  pdfFileName + ".pdf\",\"PDF\")</script>");
 //        out.print("<script type=\"text/javascript\">window.open(\"" + billingEnv.getBrowserPath() +  pdfFileName + ".pdf\",\"PDF\")</script>");
     }

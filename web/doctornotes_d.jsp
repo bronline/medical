@@ -54,7 +54,7 @@ self.close();
         int patientId = patient.getId();
 
         if (request.getParameter("ID")!=null) {id = Integer.parseInt(request.getParameter("ID")); }
-        if (request.getParameter("notedate")!=null) {noteDate = new java.util.Date(request.getParameter("notedate")); }
+        if (request.getParameter("notedate")!=null) {noteDate = new java.util.Date(Format.formatDate(request.getParameter("notedate"), "MM/dd/yyyy")); }
         if (request.getParameter("note")!=null) {note = request.getParameter("note"); }
 
         noteDateCal.setTime(noteDate);

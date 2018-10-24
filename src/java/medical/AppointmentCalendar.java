@@ -113,7 +113,7 @@ public class AppointmentCalendar {
         for (int i=1;i<=rowsToGenerate;i++) {
             apptCount = getApptCount();
             // RKW prevent autoexpansion if not allowAutoExpansion
-            if (apptCount>colsToGenerate && !isAllowAutoExpand()) {
+            if (apptCount>colsToGenerate && isAllowAutoExpand()) {
                 colsToGenerate=apptCount;
             }
             myCalendar.add(Calendar.MINUTE, incrementMinutes);
@@ -138,6 +138,9 @@ public class AppointmentCalendar {
             if(colsToGenerate*Integer.parseInt(cellWidth)<200) {
                 apptCalendarWidth=150;
             }
+        } else {
+            apptCalendarWidth=colsToGenerate*60;
+            cellWidth = "" + (6000/apptCalendarWidth) + "%";
         }
         htmTb.setWidth(""+apptCalendarWidth);
         grid.append(htmTb.startTable());
@@ -152,7 +155,7 @@ public class AppointmentCalendar {
         // RKW - 09/30/2008 Seperate the heading from the body of the calendar
         grid.append(htmTb.endTable());
 
-        grid.append("<div style='height: 400; width: " + (apptCalendarWidth+20) + "; overflow: auto;'>\n");
+        grid.append("<div style='height: 400px; width: " + (apptCalendarWidth+20) + "px; overflow: auto;'>\n");
         grid.append(htmTb.startTable());
         
         for (int i=1;i<=rowsToGenerate;i++) {
@@ -182,18 +185,14 @@ public class AppointmentCalendar {
         String scrollDownTime="";
         
         StringBuffer grid=new StringBuffer();
-        grid.append(htmTb.startTable("630"));
-        grid.append(htmTb.startRow("height=20"));
+        grid.append(htmTb.startTable("630px"));
+        grid.append(htmTb.startRow("height=20px"));
 
         if(startHour>3) { scrollUpHour = startHour-3; } else { scrollUpHour=0; }
         if(startHour<19) { scrollDownHour = startHour+3; } else { scrollDownHour = 18; }
 
         if(scrollUpHour<10) { scrollUpTime = "0"+scrollUpHour+":00"; } else { scrollUpTime = ""+scrollUpHour+":00"; }
         if(scrollDownHour<10) { scrollDownTime = "0"+scrollDownHour+":00"; } else { scrollDownTime = ""+scrollDownHour+":00"; }
-
-// RKW 07/07/11        grid.append(htmTb.headingCell("<a href=" + scrollURL + "?scrollup=" + scrollTimeIncrements +
-// RKW 07/07/11                ">&uarr;&uarr;</a>" + "&nbsp;&nbsp;&nbsp;&nbsp;" +
-// RKW 07/07/11                "<a href=" + scrollURL + "?scrolldown=" + scrollTimeIncrements + ">&darr;&darr;</a>"));
         grid.append(htmTb.headingCell("<a href=" + scrollURL + "?scrollup=1&time=" + scrollUpTime +
                 ">&uarr;&uarr;</a>" + "&nbsp;&nbsp;&nbsp;&nbsp;" +
                 "<a href=" + scrollURL + "?scrolldown=1&time=" + scrollDownTime + ">&darr;&darr;</a>"));
@@ -236,10 +235,10 @@ public class AppointmentCalendar {
                     if(linkTimeFormat.format(myCalendar.getTime()).substring(3).equals("00")) {  //RKW 07/07/11
                         onClickOption=" onClick=\"window.location.href='" + timeURL +"?scrolldown=" + scrollDown +
                                     "&time=" + linkTimeFormat.format(myCalendar.getTime()) + "'\"";
-                        row.append(htmTb.addCell("<font size=1>" +  timeFormat.format(myCalendar.getTime()),"style='cursor: pointer; font-weight: bold;' width=" + cellWidth + onClickOption));
+                        row.append(htmTb.addCell("<font size=1>" +  timeFormat.format(myCalendar.getTime()),"style='cursor: pointer; font-weight: bold;' width='" + cellWidth + "'" + onClickOption));
                     } else { // RKW 07/07/11
                         onClickOption=""; //RKW 07/07/11
-                        row.append(htmTb.addCell("<font size=1>" + timeFormat.format(myCalendar.getTime()),"width=" + cellWidth + onClickOption));  // RKW 07/07/11
+                        row.append(htmTb.addCell("<font size=1>" + timeFormat.format(myCalendar.getTime()),"width='" + cellWidth + "'" + onClickOption));  // RKW 07/07/11
                     } // RKW 07/07/11
                 } else {
                     onClick = " onClick=showAppointmentEditBubble(this,event,'ajax/appointment.jsp'," + apptArray[i-2][1] + "," + patientId + "); ";
@@ -248,8 +247,8 @@ public class AppointmentCalendar {
                         if(isAllowSchedWhenOut() || !isTimeBlockedOut(currentTime)) {
                             onClickOption=" onClick=\"moveCurrentAppointment('" + isoFormat.format(myCalendar.getTime()) + "'," + showForResource + ",'" + linkTimeFormat.format(myCalendar.getTime()) + "')\"";
                         }
-                        row.append(htmTb.addCell("", "style='cursor: pointer' width=" + 
-                                cellWidth + onClickOption));
+                        row.append(htmTb.addCell("", "style='cursor: pointer' width='" + 
+                                cellWidth + "'" + onClickOption));
                     } else if (!apptArray[i-2][4].equals("N")) {
                         if (Integer.parseInt(apptArray[i-2][1])==selectedAppointment) {
                             selectedStyle="border: 3px solid #cc99ff; ";
@@ -257,8 +256,9 @@ public class AppointmentCalendar {
                             selectedStyle="";
                         }
                         row.append(htmTb.addCell("<font size=1>" + apptArray[i-2][0], 
-                                " rowspan=" + apptArray[i-2][5] + " width=" +
-                                cellWidth + " style='" + selectedStyle +
+//                                " rowspan=" + apptArray[i-2][5] + 
+                                " width='" + cellWidth + "'" + 
+                                " style='" + selectedStyle +
                                 " color: " + apptTypesArray[Integer.parseInt(apptArray[i-2][2])][3] + "; " +
                                 " background-color: " + apptTypesArray[Integer.parseInt(apptArray[i-2][2])][2] + "; " +
                                 " cursor: pointer;' " +

@@ -36,7 +36,7 @@ function win(where,close){
     String batchPrintType = request.getParameter("batchPrintType");
     String name;
     String close="Y";
-    String documentRoot="C:\\Inetpub\\vhosts\\chiropracticeonline.net\\httpdocs\\medicaldocs\\" + databaseName;
+    String documentRoot="C:\\Program Files (x86)\\Parallels\\Plesk\\var\\tomcat\\psa-webapps\\chiropracticeonline.net\\medicaldocs\\" + databaseName;
     String httpRoot="http://chiropracticeonline.net/medicaldocs/" + databaseName;
     checkDir(documentRoot, thisBatch.getDocumentMap());
 //    checkDir(billingEnv.getString("documentpath"), thisBatch.getDocumentMap());

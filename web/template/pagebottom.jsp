@@ -25,7 +25,10 @@
     <td height="37" colspan=2 style="padding-left:30px; padding-right:25px; ">
       <table width="100%"  border="0" cellpadding="0" cellspacing="0">
         <tr>
-            <td class=copyright><a href="<%= companyUrl %>" target="_blank" class="copyright"><%= companyName %></a></td>
+            <td class=copyright>
+                <a href="<%= companyUrl %>" target="_blank" class="copyright"><%= companyName %></a></br>
+                <span id="siteseal"><script async type="text/javascript" src="https://seal.starfieldtech.com/getSeal?sealID=xuRncps40qHBlVGJ8FcyLfLPqOhrNaCPuWNgBKRk1pa8MTcsleh"></script></span>
+            </td>
           <td align="right" nowrap></td>
         </tr>
       </table>

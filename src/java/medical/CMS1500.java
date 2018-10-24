@@ -615,7 +615,10 @@ public class CMS1500 extends Document {
         
         int currentCode=1;
         int maxCode = 5;
-        if(isACAForm()) { maxCode = 13; }
+        if(isACAForm()) { 
+            maxCode = 13;
+            setDocumentFieldValue("ICD_Ind","0");
+        }
         while(lRs.next() && currentCode<maxCode) {
             String code=lRs.getString("code");
             String subCode="";
@@ -1083,11 +1086,14 @@ public class CMS1500 extends Document {
     }
     
     private void doBox26() {
+        /*
         try {
-            setDocumentFieldValue("accountnumber", patientRs.getString("accountnumber") + "-" + this.batchId);
+            int b = Integer.valueOf(this.batchId);
+            setDocumentFieldValue("accountnumber", patientRs.getString("accountnumber") + "-" + Integer.toString(b, 36));
         } catch (SQLException ex) {
             Logger.getLogger(CMS1500.class.getName()).log(Level.SEVERE, null, ex);
         }
+        */
     }
 
     private void doBox27() throws Exception {

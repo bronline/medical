@@ -620,6 +620,7 @@ public class Patient extends MedicalResultSet {
         ci.append(frm.getInputItem("cardnumber"));
         ci.append(frm.getInputItem("preferredcontact"));
         ci.append(frm.getInputItem("useemail"));
+        ci.append(frm.getInputItem("usesms"));
 
         ci.append(htmTb.endTable());
 //        ci.append("</div>");
@@ -1246,6 +1247,8 @@ public class Patient extends MedicalResultSet {
     }
     
     public String getXrays() throws Exception {
+        if(env == null) { env=new Environment(io); }
+        env.refresh();
         StringBuffer xr   = new StringBuffer();
         StringBuffer pi   = new StringBuffer();
         htmTb.setWidth("800");
@@ -1317,16 +1320,22 @@ public class Patient extends MedicalResultSet {
         StringBuffer img = new StringBuffer();
         String onClickOption = "";
 
-
+/*
         if(!documentPath.equals("")) {
-            imagePath        = documentPath.replaceAll("\\\\", "/");
+            imagePath = documentPath.replaceAll("\\\\", "/");
             if(imagePath.substring(0,2).equals("//") || imagePath.substring(0,2).toUpperCase().equals("C:")) { 
                 imagePath=imagePath.substring(imagePath.indexOf("/medical"));
             }
             if(imagePath.indexOf("/medical/") > -1  && imagePath.indexOf("/medicaldocs/") == -1) { imagePath = "/medicaldocs" + imagePath.substring(imagePath.lastIndexOf("/medical/") + "/medical".length()); }
             imageDescription = description;
         }
-
+*/
+        if(!documentPath.equals("")) {
+            imagePath = env.getBrowserPath();
+            int x = documentPath.indexOf(this.id);
+            imagePath += io.getLibraryName() + "/" + documentPath.substring(x).replace('\\','/');
+        }
+        
         if(id != 0) { onClickOption = "onClick=displayImage('" + id + "') style='cursor: pointer;'"; }
 
         htmTb.setWidth("100%");

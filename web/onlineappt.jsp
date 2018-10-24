@@ -23,6 +23,10 @@
         String height= request.getParameter("height");
         String border= request.getParameter("border");
         String bodyColor=request.getParameter("bodyColor");
+        String newPatient=request.getParameter("apptType");
+        
+        if(newPatient==null) { newPatient="EXISTING"; }
+        session.setAttribute("apptType", newPatient);
         String mn    = "";
         int cellHeight = 60;
     //    String groupEventsSQL = "(select calendar.id AS id,calendar.groupid AS groupid,calendar.date AS date,calendar.time AS time,calendar.event AS event,calendar.description AS description,groups.name AS name,groups.code AS code from (calendar left join groups on((calendar.groupid = groups.id)))) groupevents";
@@ -101,7 +105,7 @@
     } else if(request.getParameter("cellphone") == null || request.getParameter("cellphone").equals("")) {
         String errorMessage=(String)session.getAttribute("errorMessage");
         if(errorMessage == null) { errorMessage=""; }
-        ResultSet lRs=io.opnRS("select id, cellphone, dob from patients where id=0");
+        ResultSet lRs=io.opnRS("select id, firstname, lastname, cellphone, dob from patients where id=0");
         RWInputForm frm=new RWInputForm(lRs);
         RWHtmlTable htmTb=new RWHtmlTable("600","0");
         frm.setAction("onlineappt.jsp");
@@ -119,6 +123,25 @@
         out.print(frm.getInputItem("cellphone"));
         out.print(frm.getInputItem("dob"));
 //        out.print(frm.getInputItem("accountnumber"));
+        htmTb.setCellVAlign("middle");
+        if(env.getBoolean("allownewpatscheduling")) {
+            out.print(htmTb.startRow());
+            out.print(htmTb.addCell("<b>NEW Patients Enter the Following:</b>","colspan=\"2\" style=\"height: 40px; margin-top: 15px; font-size: 12px;\""));
+            out.print(htmTb.endRow());
+            htmTb.setCellVAlign("top");
+            out.print(htmTb.startRow());
+            out.print(frm.getInputItem("firstname"));
+            out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(frm.getInputItem("lastname"));
+            out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(frm.getInputItem("dob"));
+            out.print(htmTb.endRow());
+            out.print(htmTb.startRow());
+            out.print(frm.getInputItem("cellphone"));
+            out.print(htmTb.endRow());
+        }
         out.print(htmTb.endTable());
         out.print(frm.endForm());
         out.print(frm.button("check available appointments", "class=button onClick=checkAppts()"));
@@ -126,16 +149,40 @@
 //        String accountNumber=request.getParameter("accountnumber");
         String dob=request.getParameter("dob");
         String cellPhone=request.getParameter("cellphone");
-
-        ResultSet lRs=io.opnRS("select id from patients where cellphone='" + cellPhone+ "' and dob='" + tools.utils.Format.formatDate(dob, "yyyy-MM-dd") + "'");
-        if(lRs.next()) {
-            patient.setId(lRs.getString("id"));
-            lRs.close();
-            out.print("<script>location.href='onlineappt.jsp';</script>");
+        String firstName=request.getParameter("firstname");
+        String lastName=request.getParameter("lastname");
+        if(request.getParameter("firstname") == null || firstName.equals("")) {
+            ResultSet lRs=io.opnRS("select id from patients where cellphone='" + cellPhone+ "' and dob='" + tools.utils.Format.formatDate(dob, "yyyy-MM-dd") + "'");
+            if(lRs.next()) {
+                patient.setId(lRs.getString("id"));
+                lRs.close();
+                out.print("<script>location.href='onlineappt.jsp';</script>");
+            } else {
+                session.setAttribute("errorMessage", "Information not found");
+                lRs.close();
+                out.print("<script>location.href='onlineappt.jsp';</script>");
+            }
         } else {
-            session.setAttribute("errorMessage", "Information not found");
-            lRs.close();
-            out.print("<script>location.href='onlineappt.jsp';</script>");
+            ResultSet lRs=io.opnRS("select id from patients where cellphone='" + cellPhone+ "' and dob='" + tools.utils.Format.formatDate(dob, "yyyy-MM-dd") + "'");
+            if(lRs.next()) {
+                patient.setId(lRs.getString("id"));
+                lRs.close();
+                out.print("<script>location.href='onlineappt.jsp';</script>");
+            } else {
+                PreparedStatement lPs=io.getConnection().prepareStatement("insert into patients (firstname, lastname, dob, cellphone, usesms, attentionmsg) values(?,?,?,?,1, '')");
+                lPs.setString(1, firstName);
+                lPs.setString(2, lastName);
+                lPs.setString(3, Format.formatDate(dob,"yyyy-MM-dd"));
+                lPs.setString(4, cellPhone);
+                lPs.execute();
+                
+                io.setMySqlLastInsertId();
+                int patientId=io.getLastInsertedRecord();
+                
+                patient.setId(patientId);
+                lRs.close();
+                out.print("<script>location.href='onlineappt.jsp?apptType=NEW';</script>");
+            }
         }
     }
 %>

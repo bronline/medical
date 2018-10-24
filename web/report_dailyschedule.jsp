@@ -55,7 +55,7 @@
    out.print(frm.startForm());
    out.print(htmTb.startTable());
    out.print(htmTb.startRow());
-   out.print(htmTb.addCell("<b>From Date</b>", "width=70"));
+   out.print(htmTb.addCell("<b>From Date</b>", "width=100"));
    out.print(htmTb.addCell(frm.date(Format.formatDate(reportDate, "MM/dd/yyyy"), "reportDate", "class=tBoxText") + datePicker, " width=200"));
 //   out.print(htmTb.addCell(frm.button("view", "class=button onClick=changeReportDate() "), htmTb.LEFT, "width=50"));
    out.print(htmTb.addCell("<b>To Date</b>", "width=70"));

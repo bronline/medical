@@ -154,7 +154,7 @@
 
     lowDate = tools.utils.Format.formatDate(startDate, "yyyy-MM-dd");
     highDate = tools.utils.Format.formatDate(endDate, "yyyy-MM-dd");
-    
+/*    
     myQuery =   "select b.id as batchId, b.Id as Batch, " +
                 "min(pb.date) as Start, max(pb.date) as End, "+
                 "count(pb.id) as Charges, " +
@@ -168,6 +168,8 @@
                 "and b.provider=" + providerId +
                 " group by b.id, b.created " +
                 "order by b.created";
+*/
+    myQuery = "CALL rwcatalog.prGetBillBatchesForPayer('" + io.getLibraryName() + "'," + providerId + ")";
 
 // Create an RWFiltered List object
     RWFilteredList lst = new RWFilteredList(io);
